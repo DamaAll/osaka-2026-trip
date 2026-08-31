@@ -16,3 +16,5 @@ const navs=[...document.querySelectorAll('.nav')];
 navs.forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.id)?.scrollIntoView({behavior:'smooth',block:'start'})));
 const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)navs.forEach(b=>b.classList.toggle('active',b.dataset.id===e.target.id))}),{rootMargin:'-35% 0px -52% 0px',threshold:0});
 document.querySelectorAll('.day').forEach(el=>observer.observe(el));
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
