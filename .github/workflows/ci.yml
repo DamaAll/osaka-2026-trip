@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-mobile-review:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,3 +26,7 @@ jobs:
         run: |
           test -f dist/index.html
           test -d dist/assets
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Review 375 / 390 / 430px layouts
+        run: npm run test:mobile
