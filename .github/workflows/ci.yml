@@ -22,9 +22,17 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build Vue app
         run: npm run build
+      - name: Prepare production-like dist
+        run: |
+          cp data.js dist/data.js
+          cp manifest.webmanifest dist/manifest.webmanifest
+          cp sw.js dist/sw.js
+          touch dist/.nojekyll
       - name: Verify expected output
         run: |
           test -f dist/index.html
+          test -f dist/data.js
+          test -f dist/sw.js
           test -d dist/assets
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
