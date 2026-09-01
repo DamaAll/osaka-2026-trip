@@ -20,6 +20,16 @@ defineEmits(['update:note'])
  */
 const openedByUser = ref(false)
 const isOpen = computed(() => !props.collapsed || openedByUser.value)
+
+/*
+ * 分類取代原本的 STOP 01。序號在現場沒有用處，「這一站是交通還是用餐」才有。
+ * 現在／下一站會佔走同一個位置，所以一行最多兩個標籤。
+ */
+const TYPE_LABEL = {
+  transport: '交通', attraction: '景點', food: '用餐', shopping: '購物',
+  rest: '休息', decision: '決策', hotel: '住宿', flight: '航班'
+}
+const typeLabel = (type) => TYPE_LABEL[type] || ''
 const stopState = (index) => {
   if (!props.isToday) return ''
   if (index === props.currentItem) return 'now'
@@ -92,7 +102,7 @@ const stopState = (index) => {
             <time class="journey-time">{{ item.time }}</time>
             <span v-if="stopState(index) === 'now'" class="stop-flag flag-now">現在</span>
             <span v-else-if="stopState(index) === 'next'" class="stop-flag flag-next">下一站</span>
-            <span v-else class="journey-stop">STOP {{ String(index + 1).padStart(2, '0') }}</span>
+            <span v-else-if="typeLabel(item.type)" class="journey-type">{{ typeLabel(item.type) }}</span>
             <span v-if="item.statusLabel" class="journey-status" :class="`status-${item.status}`">{{ item.statusLabel }}</span>
           </div>
 
@@ -154,7 +164,7 @@ const stopState = (index) => {
   border-radius: 999px;
   background: #eef6ff;
   color: var(--blue-deep, #0054c7);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0;
 }
@@ -197,7 +207,7 @@ const stopState = (index) => {
   align-items: center;
   padding: 0 9px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -245,7 +255,7 @@ const stopState = (index) => {
 .rain-plan > summary span {
   display: block;
   color: #16835b;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: .12em;
 }
@@ -335,7 +345,7 @@ const stopState = (index) => {
   border-radius: 5px;
   background: #d5eee5;
   color: #116b4b;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -372,7 +382,7 @@ const stopState = (index) => {
   background: #fff;
   border: 1px solid #dce9f8;
   color: #6b7684;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -484,12 +494,18 @@ const stopState = (index) => {
   overflow-wrap: anywhere;
 }
 
-.journey-stop {
-  color: #a1a4aa;
-  font-size: 10px;
-  line-height: 1;
-  font-weight: 850;
-  letter-spacing: .1em;
+/* 分類保持灰色低調：它永遠都在，彩色要留給偶爾出現的 status。 */
+.journey-type {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid #e4e7ec;
+  border-radius: 7px;
+  background: #f4f6f8;
+  color: #616a75;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .journey-status {
@@ -499,7 +515,7 @@ const stopState = (index) => {
   padding: 0 7px;
   border: 1px solid transparent;
   border-radius: 7px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -586,7 +602,7 @@ const stopState = (index) => {
 
 .choice-row > b {
   color: #8a929c;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .08em;
 }
 

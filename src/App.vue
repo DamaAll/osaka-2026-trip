@@ -85,6 +85,27 @@ const startMinutes = (time) => {
   return match ? Number(match[1]) * 60 + Number(match[2]) : null
 }
 
+// 只在旅行中、且「現在」那一站離開視野時才出現，不做常駐浮動按鈕。
+const nowOffScreen = ref(false)
+let stopWatcher
+
+const scrollToNow = () => {
+  document.querySelector('.stop-now')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const watchCurrentStop = async () => {
+  stopWatcher?.disconnect()
+  nowOffScreen.value = false
+  if (tripPhase.value !== 'during' || activeView.value !== 'itinerary') return
+  await nextTick()
+  const target = document.querySelector('.stop-now')
+  if (!target) return
+  stopWatcher = new IntersectionObserver(([entry]) => {
+    nowOffScreen.value = !entry.isIntersecting
+  }, { threshold: 0 })
+  stopWatcher.observe(target)
+}
+
 const nowMinutes = ref(0)
 // 一定要用日本時間算。手機若還停在台灣時區就會慢一小時，
 // 那會讓「現在」指到上一站——比不標示更糟。
@@ -136,6 +157,26 @@ const todayFocus = computed(() => {
     return { kicker: `距出發 ${daysToStart.value} 天`, title: `還有 ${criticalRemaining.value} 件關鍵任務`, desc: `最急的是「${next.title}」— ${next.deadline}。`, target: 'prep' }
   }
   return { kicker: `距出發 ${daysToStart.value} 天`, title: '關鍵任務都清掉了', desc: `剩下的行李與雜項在準備分頁，目前完成 ${progress.value}%。`, target: 'prep' }
+})
+
+/*
+ * 九條規則全部攤開有 1.8 個螢幕高。以「當天用得到的」為主，其餘收進摺疊，
+ * 但不刪除——規則本身也是行前閱讀資料，出發前需要看得到全部。
+ * 沒有今天（出發前）時就以目前選定的那一天為準。
+ */
+const focusDayId = computed(() => todayId.value || activeDay.value)
+
+const relevantDecisions = computed(() => (trip.decisions || []).filter(
+  item => item.days === '*' || item.days.includes(focusDayId.value)
+))
+
+const otherDecisions = computed(() => (trip.decisions || []).filter(
+  item => !(item.days === '*' || item.days.includes(focusDayId.value))
+))
+
+const focusDayLabel = computed(() => {
+  const index = trip.days.findIndex(day => day.id === focusDayId.value)
+  return index >= 0 ? `D${index + 1}` : ''
 })
 
 const loadChecks = () => {
@@ -370,6 +411,7 @@ const afterViewChange = async () => {
     document.querySelectorAll('.day-section').forEach(element => observer?.observe(element))
   }
   await prepareTextLayout()
+  await watchCurrentStop()
 }
 
 const switchView = async (view, anchorId) => {
@@ -473,6 +515,7 @@ onMounted(async () => {
 
   // 一定要等捲動結束才開始觀察，否則 observer 會用捲動前的位置決定當前日。
   document.querySelectorAll('.day-section').forEach(el => observer.observe(el))
+  await watchCurrentStop()
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {})
@@ -482,6 +525,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+  stopWatcher?.disconnect()
   pretextObserver?.disconnect()
   cancelAnimationFrame(pretextFrame)
   window.removeEventListener('online', updateNetwork)
@@ -570,16 +614,29 @@ onBeforeUnmount(() => {
 
         <section class="content-section command-section decision-section" aria-labelledby="decision-title">
           <div class="section-title-row command-title-row">
-            <div><p class="section-kicker">LIVE RULES</p><h2 id="decision-title">現場切換規則</h2><p class="section-caption" data-pretext>時間到了就照規則切換，不在現場重新討論。</p></div>
+            <div><p class="section-kicker">LIVE RULES</p><h2 id="decision-title">{{ focusDayLabel ? `${focusDayLabel} 今天注意` : '現場切換規則' }}</h2><p class="section-caption" data-pretext>時間到了就照規則切換，不在現場重新討論。</p></div>
           </div>
           <div class="decision-grid">
-            <article v-for="decision in trip.decisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
+            <article v-for="decision in relevantDecisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
               <div class="decision-topline"><span>{{ decision.when }}</span><b>{{ decision.badge }}</b></div>
               <h3>{{ decision.title }}</h3>
               <p data-pretext>{{ decision.rule }}</p>
               <a v-if="decision.url" :href="decision.url" target="_blank" rel="noopener noreferrer">{{ decision.action }}</a>
             </article>
           </div>
+          <details v-if="otherDecisions.length" class="fold other-rules">
+            <summary><strong>查看另外 {{ otherDecisions.length }} 條規則</strong><small>其他天用得到的，出發前也該看過一次</small></summary>
+            <div class="fold-body">
+              <div class="decision-grid">
+                <article v-for="decision in otherDecisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
+                  <div class="decision-topline"><span>{{ decision.when }}</span><b>{{ decision.badge }}</b></div>
+                  <h3>{{ decision.title }}</h3>
+                  <p>{{ decision.rule }}</p>
+                  <a v-if="decision.url" :href="decision.url" target="_blank" rel="noopener noreferrer">{{ decision.action }}</a>
+                </article>
+              </div>
+            </div>
+          </details>
         </section>
 
         <details class="fold">
@@ -982,6 +1039,10 @@ onBeforeUnmount(() => {
   </main>
 
   <nav v-if="activeView === 'itinerary'" class="bottom-nav" aria-label="每日行程">
+    <!-- 放在底部導覽的容器內，跟著同一個 safe-area，不會被 PWA 的下緣切到。 -->
+    <button v-if="nowOffScreen" type="button" class="back-to-now" @click="scrollToNow">
+      <i aria-hidden="true"></i>回到現在
+    </button>
     <div class="bottom-nav-inner">
       <button
         v-for="(day, index) in trip.days"

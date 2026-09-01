@@ -36,7 +36,9 @@ for (const width of widths) {
     await expect(page.locator('.timeline-side')).toHaveCount(0)
     await expect(page.locator('.view-tabs button')).toHaveCount(5)
     await expect(page.locator('.critical-row')).toHaveCount(0)
+    // 相關規則在外、其餘收摺疊，兩邊加起來仍是完整的 9 條。
     await expect(page.locator('.decision-card')).toHaveCount(9)
+    await expect(page.locator('.decision-section > .decision-grid .decision-card')).toHaveCount(5)
     await expect(page.locator('.rain-plan')).toHaveCount(2)
     await expect(page.locator('.choice-row')).toHaveCount(3)
 
@@ -46,6 +48,17 @@ for (const width of widths) {
       elements.filter(element => element.scrollHeight > element.clientHeight + 1).length
     ))
     expect(clippedPretext).toBe(0)
+
+    // 戶外、陽光下、單手拿手機：11px 是可讀性的下限，不要為了排版再往下壓。
+    const tooSmall = await page.evaluate(() => [...document.querySelectorAll('body *')]
+      .filter(el => {
+        const ownText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+        if (!ownText) return false
+        const rect = el.getBoundingClientRect()
+        return rect.width && rect.height && parseFloat(getComputedStyle(el).fontSize) < 11
+      })
+      .map(el => `${el.className || el.tagName}: ${el.textContent.trim().slice(0, 12)}`))
+    expect(tooSmall).toEqual([])
 
     const firstDay = page.locator('.day-section').first()
     const firstRail = firstDay.locator('.journey-rail').first()
@@ -74,10 +87,21 @@ test('decision rules and touch targets are usable on mobile', async ({ page }) =
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)
 
-  await expect(page.getByRole('heading', { name: '現場切換規則' })).toBeVisible()
-  await expect(page.getByText('早上兩站都可以跳過')).toBeVisible()
-  await expect(page.getByText('京都大雨改走室內線')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /今天注意|現場切換規則/ })).toBeVisible()
+  /*
+   * 規則依當天篩選：D1 只留 D1 的兩條加三條全域規則，其餘收進摺疊。
+   * 出發前不刪內容，只是換位置，所以摺疊裡必須找得到。
+   */
+  await expect(page.locator('.decision-section > .decision-grid .decision-card')).toHaveCount(5)
+  await expect(page.getByText('巴士是否還等 15:32')).toBeVisible()
   await expect(page.getByText('颱風警報就切應急流程')).toBeVisible()
+
+  const others = page.locator('.other-rules')
+  await expect(others.locator('summary')).toContainText('另外 4 條')
+  await expect(others.getByText('京都大雨改走室內線')).toBeHidden()
+  await others.locator('summary').click()
+  await expect(others.getByText('京都大雨改走室內線')).toBeVisible()
+
   await expect(page.getByText('午餐 A / B / C＋祇園')).toBeVisible()
 
   // 大阪城已換成難波八阪神社＋黑門市場，兩站都免費且動線是步行。
@@ -284,6 +308,52 @@ test('during the trip the itinerary opens on today', async ({ page }) => {
   await expect(page.locator('#d1 .journey-item')).toHaveCount(5)
 })
 
+// 站點顯示語意分類而非流水號，且現在／下一站會取代分類，一行最多兩個標籤。
+test('stops show a category, replaced by now and next', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-23T13:00:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  await expect(page.locator('.journey-stop')).toHaveCount(0)
+  await expect(page.locator('#d3 .journey-item').first().locator('.journey-type')).toHaveText('交通')
+
+  // 現在那一站不顯示分類，改顯示「現在」；status 仍然保留。
+  const now = page.locator('#d3 .stop-now')
+  await expect(now.locator('.journey-type')).toHaveCount(0)
+  await expect(now.locator('.flag-now')).toHaveText('現在')
+  await expect(now.locator('.journey-status')).toHaveText('現場三選一')
+  await expect(now.locator('.journey-meta > *')).toHaveCount(3)
+
+  await expect(page.locator('#d3 .stop-next .journey-type')).toHaveCount(0)
+  await expect(page.locator('#d3 .stop-next .flag-next')).toHaveText('下一站')
+})
+
+// 離開「現在」才出現的回位按鈕，不做常駐浮動元件。
+test('back-to-now appears only when the current stop is off screen', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-23T13:00:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  const button = page.locator('.back-to-now')
+  await expect(button).toBeHidden()
+
+  // 滑去看明天，按鈕才出現。
+  await page.locator('#d4').scrollIntoViewIfNeeded()
+  await expect(button).toBeVisible()
+  await expect(button).toHaveText(/回到現在/)
+
+  // 不能蓋住底部導覽。
+  const [nav, back] = await Promise.all([
+    page.locator('.bottom-nav-inner').boundingBox(),
+    button.boundingBox()
+  ])
+  expect(back.y + back.height).toBeLessThanOrEqual(nav.y + 1)
+
+  await button.click()
+  await expect(page.locator('#d3 .stop-now')).toBeInViewport()
+  await expect(button).toBeHidden()
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
@@ -301,10 +371,12 @@ test('the current stop uses Japan time even on a Taipei phone', async ({ browser
  * Nights 就整段沒了，所以這條規則必須留在頁面上，D4 也不能出現離園休息。
  */
 test('D4 never sends anyone out of the park to rest', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-24T09:00:00+09:00') })
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)
 
-  await expect(page.getByText('進了 USJ 就不能出園')).toBeVisible()
+  // D4 當天，這條規則必須直接在外層顯示，不能藏在摺疊裡。
+  await expect(page.locator('.decision-section > .decision-grid').getByText('進了 USJ 就不能出園')).toBeVisible()
 
   const d4 = page.locator('#d4')
   await expect(d4.getByRole('heading', { name: /園內 Recovery/ })).toBeVisible()
