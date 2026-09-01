@@ -207,6 +207,17 @@ test('service worker precaches the app shell and every hashed asset', async ({ p
   for (const asset of referenced) expect(cached).toContain(asset)
 })
 
+// hero 收合會換掉整塊標題區，別把文件唯一的 h1 一起收掉。
+test('the page keeps an h1 after the hero collapses', async ({ page }) => {
+  await openTrip(page)
+  await expect(page.locator('h1')).toHaveCount(1)
+
+  await page.getByRole('tab', { name: /準備/ }).click()
+  await expect(page.locator('.hero-strip')).toBeVisible()
+  await expect(page.locator('h1')).toHaveCount(1)
+  await expect(page.locator('h1')).toHaveText('大阪 5 天 4 夜')
+})
+
 // 四支手機都會把這頁加到主畫面，沒有圖示就只能靠網頁截圖認，等於找不到。
 test('installable icons resolve', async ({ page, request }) => {
   await openTrip(page)

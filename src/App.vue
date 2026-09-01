@@ -372,7 +372,9 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="page-shell">
-    <section v-if="heroCompact" class="hero-strip">
+    <section v-if="heroCompact" class="hero-strip" aria-labelledby="trip-title">
+      <!-- 收合後仍要保留文件的 h1，否則整頁會沒有頂層標題。 -->
+      <h1 id="trip-title" class="visually-hidden">大阪 5 天 4 夜</h1>
       <button type="button" class="hero-strip-main" @click="openFocus">
         <span class="hero-strip-copy">
           <small>{{ todayFocus.kicker }}</small>
