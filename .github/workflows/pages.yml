@@ -51,13 +51,22 @@ jobs:
             build_type=$(python3 -c "import json;print(json.load(open('/tmp/pages.json')).get('build_type',''))")
             echo "current build_type: ${build_type}"
             if [ "$build_type" != "workflow" ]; then
-              echo "switching Pages to workflow builds"
+              echo "attempting to switch Pages to workflow builds"
               update_status=$(curl -sS -o /tmp/pages-update.json -w "%{http_code}" \
                 -X PUT "${headers[@]}" \
                 -H "Content-Type: application/json" \
                 -d '{"build_type":"workflow"}' \
                 "$api")
-              test "$update_status" = "204"
+              echo "PUT /pages -> ${update_status}"
+              cat /tmp/pages-update.json || true
+              # 變更 Pages 設定需要 repo admin 權限，GITHUB_TOKEN 的 pages:write 只能部署。
+              # 這裡不讓它擋住流程：即使切不過去也要把 artifact 傳上去，並且大聲提醒。
+              case "$update_status" in
+                200|204) echo "Pages now builds from this workflow." ;;
+                *)
+                  echo "::error::Pages is still on '${build_type}' builds, so the live site keeps serving the repo root (unbuilt source). Fix it in Settings -> Pages -> Source: GitHub Actions."
+                  ;;
+              esac
             fi
           else
             cat /tmp/pages.json || true
