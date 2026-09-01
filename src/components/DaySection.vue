@@ -2,26 +2,50 @@
 import ActionButtons from './ActionButtons.vue'
 import TransportCard from './TransportCard.vue'
 
-defineProps({
+import { computed, ref } from 'vue'
+
+const props = defineProps({
   day: { type: Object, required: true },
-  note: { type: String, default: '' }
+  note: { type: String, default: '' },
+  isToday: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: false },
+  currentItem: { type: Number, default: -1 },
+  nextItem: { type: Number, default: -1 }
 })
 defineEmits(['update:note'])
+
+/*
+ * 旅行中只展開今天，其他天收起來——五天全開是 18 個螢幕，
+ * 而現場只關心今天。收起來的日子仍然點得開。
+ */
+const openedByUser = ref(false)
+const isOpen = computed(() => !props.collapsed || openedByUser.value)
+const stopState = (index) => {
+  if (!props.isToday) return ''
+  if (index === props.currentItem) return 'now'
+  if (index === props.nextItem) return 'next'
+  return index < props.currentItem ? 'done' : ''
+}
 </script>
 
 <template>
-  <section :id="day.id" class="day-section section-anchor">
+  <section :id="day.id" class="day-section section-anchor" :class="{ 'is-today': isToday, 'is-collapsed': !isOpen }">
     <header class="day-heading">
       <div class="day-heading-copy">
         <span class="day-number">{{ day.no.replace('DAY ', 'D') }}</span>
         <div class="day-title-copy">
-          <p class="day-kicker">{{ day.date }}</p>
+          <p class="day-kicker">{{ day.date }}<b v-if="isToday" class="today-tag">今天</b></p>
           <h2>{{ day.title }}</h2>
         </div>
       </div>
       <span class="day-count">{{ day.items.length }} 站</span>
     </header>
 
+    <button v-if="!isOpen" type="button" class="day-expand" @click="openedByUser = true">
+      展開這一天的 {{ day.items.length }} 站
+    </button>
+
+    <template v-if="isOpen">
     <div class="day-image-wrap">
       <img
         class="day-image"
@@ -54,8 +78,10 @@ defineEmits(['update:note'])
     <div class="journey-list">
       <article
         v-for="(item, index) in day.items"
+        :id="`${day.id}-stop-${index}`"
         :key="`${day.id}-${index}`"
         class="journey-item"
+        :class="`stop-${stopState(index) || 'plain'}`"
       >
         <div class="journey-rail" aria-hidden="true">
           <span class="journey-dot"></span>
@@ -64,7 +90,9 @@ defineEmits(['update:note'])
         <div class="journey-content">
           <div class="journey-meta">
             <time class="journey-time">{{ item.time }}</time>
-            <span class="journey-stop">STOP {{ String(index + 1).padStart(2, '0') }}</span>
+            <span v-if="stopState(index) === 'now'" class="stop-flag flag-now">現在</span>
+            <span v-else-if="stopState(index) === 'next'" class="stop-flag flag-next">下一站</span>
+            <span v-else class="journey-stop">STOP {{ String(index + 1).padStart(2, '0') }}</span>
             <span v-if="item.statusLabel" class="journey-status" :class="`status-${item.status}`">{{ item.statusLabel }}</span>
           </div>
 
@@ -105,6 +133,7 @@ defineEmits(['update:note'])
         @input="$emit('update:note', $event.target.value)"
       ></textarea>
     </details>
+    </template>
   </section>
 </template>
 
@@ -112,6 +141,68 @@ defineEmits(['update:note'])
 .day-title-copy {
   min-width: 0;
 }
+
+/* 今天的卡片要一眼認得出來，其他天退到背景。 */
+.day-section.is-today {
+  outline: 2px solid var(--blue, #0a6df0);
+  outline-offset: -2px;
+}
+
+.today-tag {
+  margin-left: 7px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--blue, #0a6df0);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.day-expand {
+  width: calc(100% - 24px);
+  min-height: 46px;
+  margin: 0 12px 12px;
+  border: 1px dashed #cfd6de;
+  border-radius: 12px;
+  background: #fafbfc;
+  color: #5c6672;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.day-expand:active { background: #f2f4f7; }
+
+/* 走過的站點淡出，現在與下一站拉出來。 */
+.stop-done .journey-content { opacity: .5; }
+
+.stop-now .journey-content {
+  margin: 4px 0;
+  padding: 15px 13px 17px;
+  border: 0;
+  border-radius: 14px;
+  background: #eef6ff;
+  box-shadow: inset 0 0 0 1px #cfe2fb;
+}
+
+.stop-now .journey-dot {
+  background: var(--blue, #0a6df0);
+  box-shadow: 0 0 0 4px rgba(10,109,240,.18);
+}
+
+.stop-flag {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.flag-now { background: var(--blue, #0a6df0); color: #fff; }
+.flag-next { border: 1px solid #cfe2fb; background: #fff; color: #0a6df0; }
 
 .day-count {
   padding: 6px 9px;

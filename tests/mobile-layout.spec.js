@@ -248,6 +248,73 @@ test('installable icons resolve', async ({ page, request }) => {
   expect((await request.get(new URL(appleIcon, page.url()).pathname)).status()).toBe(200)
 })
 
+/*
+ * 出發前打開跟旅行中打開是兩種完全不同的畫面，而測試機的日期永遠是出發前，
+ * 所以旅行中的行為只能靠固定時鐘來驗。這裡假裝現在是 9/23 中午的京都。
+ */
+test('during the trip the itinerary opens on today', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-23T13:00:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  // 只有今天是展開的，其他四天收起來。
+  await expect(page.locator('#d3')).toHaveClass(/is-today/)
+  await expect(page.locator('.day-section.is-collapsed')).toHaveCount(4)
+  await expect(page.locator('#d1 .journey-item')).toHaveCount(0)
+  await expect(page.locator('#d1 .day-expand')).toBeVisible()
+
+  // 13:00 落在「午餐 A / B / C＋祇園」(12:30–15:00)，下一站是錦市場。
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+  await expect(page.locator('#d3 .stop-next .journey-time')).toHaveText('15:15–16:15')
+  await expect(page.locator('#d3 .flag-now')).toHaveText('現在')
+
+  /*
+   * 底部導覽必須跟畫面上看到的那一天一致。這裡要先等捲動真的停下來再斷言，
+   * 否則會在定位動畫途中就通過，變成假的綠燈。
+   */
+  await page.waitForFunction(() => {
+    const y = window.scrollY
+    return new Promise(resolve => setTimeout(() => resolve(Math.abs(window.scrollY - y) < 2), 250))
+  }, null, { timeout: 10000 })
+  await expect(page.locator('.day-nav-button.active')).toContainText('D3')
+  await expect(page).toHaveURL(/day=d3/)
+
+  // 收起來的日子仍然打得開。
+  await page.locator('#d1 .day-expand').click()
+  await expect(page.locator('#d1 .journey-item')).toHaveCount(5)
+})
+
+// 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
+test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
+  const page = await context.newPage()
+  await page.clock.install({ time: new Date('2026-09-23T13:00:00+09:00') })
+  await openTrip(page)
+
+  // 台北時間是 12:00，日本是 13:00。要落在 12:30 開始的那一站，不是前一站。
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+  await context.close()
+})
+
+// 切分頁必須留下歷史記錄，否則 Android 的返回鍵會直接離開網站。
+test('back button moves between tabs instead of leaving', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'prep')
+
+  await page.getByRole('tab', { name: /花費/ }).click()
+  await expect(page).toHaveURL(/view=money/)
+  await page.getByRole('tab', { name: /應急/ }).click()
+  await expect(page).toHaveURL(/view=safety/)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/view=money/)
+  await expect(page.getByRole('heading', { name: '日幣要準備多少' })).toBeVisible()
+
+  await page.goBack()
+  await expect(page).toHaveURL(/view=prep/)
+  await expect(page.getByRole('heading', { name: '出發前最後防線' })).toBeVisible()
+})
+
 test('bottom navigation scrolls to the selected day', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)

@@ -75,6 +75,47 @@ const tripPhase = computed(() => {
 
 const daysToStart = computed(() => Math.ceil((tripStart - new Date()) / oneDay))
 
+/*
+ * 「我現在該在哪一站」是旅行中最常問的一句，而這頁有 18 個螢幕高。
+ * 站點時間格式不一（08:25–09:05 / 15:15 決定 / 白天 / 閉園後），
+ * 解析得出開始時間的才納入判斷，其餘略過。
+ */
+const startMinutes = (time) => {
+  const match = String(time).match(/^(\d{1,2}):(\d{2})/)
+  return match ? Number(match[1]) * 60 + Number(match[2]) : null
+}
+
+const nowMinutes = ref(0)
+// 一定要用日本時間算。手機若還停在台灣時區就會慢一小時，
+// 那會讓「現在」指到上一站——比不標示更糟。
+const japanClock = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hour12: false
+})
+const readClock = () => {
+  const parts = japanClock.formatToParts(new Date())
+  const hour = Number(parts.find(part => part.type === 'hour')?.value ?? 0)
+  const minute = Number(parts.find(part => part.type === 'minute')?.value ?? 0)
+  nowMinutes.value = hour * 60 + minute
+}
+let clockTimer
+
+const todayId = computed(() => (currentDayIndex.value >= 0 ? trip.days[currentDayIndex.value].id : ''))
+
+// 最後一個「已經該開始」的站就是現在的位置；下一個還沒到的就是下一站。
+const todayProgress = computed(() => {
+  if (!todayId.value) return { current: -1, next: -1 }
+  const items = trip.days[currentDayIndex.value].items
+  let current = -1
+  let next = -1
+  items.forEach((item, index) => {
+    const start = startMinutes(item.time)
+    if (start === null) return
+    if (start <= nowMinutes.value) current = index
+    else if (next === -1) next = index
+  })
+  return { current, next }
+})
+
 const currentDayIndex = computed(() => {
   if (tripPhase.value !== 'during') return -1
   const index = Math.floor((new Date() - tripStart) / oneDay)
@@ -103,12 +144,18 @@ const loadChecks = () => {
   })
 }
 
-const updateUrlState = () => {
+/*
+ * 分頁切換要 push，否則 Android 的返回鍵會直接離開網站——裝成 PWA 後那是唯一的
+ * 返回方式。捲動造成的 day 變化則用 replace，不然滑一次行程就塞滿整個歷史。
+ */
+const updateUrlState = (push = false) => {
   const params = new URLSearchParams(window.location.search)
   params.set('view', activeView.value)
   if (activeView.value === 'itinerary' && activeDay.value) params.set('day', activeDay.value)
   else params.delete('day')
-  window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}${window.location.hash}`)
+  const url = `${window.location.pathname}?${params.toString()}${window.location.hash}`
+  if (push) window.history.pushState(null, '', url)
+  else window.history.replaceState(null, '', url)
 }
 
 const updateCheck = (key, value) => {
@@ -315,21 +362,38 @@ const scrollToChecklist = () => {
   document.getElementById('trip-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+// 換分頁後要重接 observer 與文字排版，popstate 回來時也走同一條路。
+const afterViewChange = async () => {
+  await nextTick()
+  observer?.disconnect()
+  if (activeView.value === 'itinerary') {
+    document.querySelectorAll('.day-section').forEach(element => observer?.observe(element))
+  }
+  await prepareTextLayout()
+}
+
 const switchView = async (view, anchorId) => {
   heroCompact.value = true
   if (activeView.value !== view) {
     activeView.value = view
-    updateUrlState()
-    await nextTick()
-    observer?.disconnect()
-    if (view === 'itinerary') {
-      document.querySelectorAll('.day-section').forEach(element => observer?.observe(element))
-    }
-    await prepareTextLayout()
+    updateUrlState(true)
+    await afterViewChange()
   }
   await nextTick()
   const target = anchorId ? document.getElementById(anchorId) : document.getElementById('view-content')
   target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+const syncFromUrl = async () => {
+  const params = new URLSearchParams(window.location.search)
+  const view = params.get('view')
+  const day = params.get('day')
+  if (views.includes(view) && view !== activeView.value) {
+    activeView.value = view
+    heroCompact.value = true
+    await afterViewChange()
+  }
+  if (trip.days.some(item => item.id === day)) activeDay.value = day
 }
 
 const openFocus = () => switchView(todayFocus.value.target, todayFocus.value.dayId)
@@ -368,24 +432,42 @@ onMounted(async () => {
   loadShopping()
   loadEmergencyInfo()
   loadDayNotes()
+  readClock()
+  clockTimer = setInterval(readClock, 60000)
   if (views.includes(params.get('view'))) activeView.value = params.get('view')
   else if (tripPhase.value === 'before') activeView.value = 'prep'
   if (trip.days.some(day => day.id === params.get('day'))) activeDay.value = params.get('day')
   else if (currentDayIndex.value >= 0) activeDay.value = trip.days[currentDayIndex.value].id
   window.addEventListener('online', updateNetwork)
   window.addEventListener('offline', updateNetwork)
+  window.addEventListener('popstate', syncFromUrl)
 
   await nextTick()
   observer = new IntersectionObserver((entries) => {
     const visible = entries
       .filter(entry => entry.isIntersecting)
       .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-    if (visible) activeDay.value = visible.target.id
+    if (!visible || visible.target.id === activeDay.value) return
+    activeDay.value = visible.target.id
+    // 捲動改變了當前日，URL 也要跟上，否則重新整理會跳回別天。
+    updateUrlState()
   }, { rootMargin: '-28% 0px -58% 0px', threshold: [0, 0.1, 0.25, 0.5] })
 
-  document.querySelectorAll('.day-section').forEach(el => observer.observe(el))
-
   await prepareTextLayout()
+
+  // 旅行中打開就停在現在這一站，不要讓人從 D1 滑到今天。
+  if (activeView.value === 'itinerary' && todayId.value) {
+    const { current } = todayProgress.value
+    const target = document.getElementById(current >= 0 ? `${todayId.value}-stop-${current}` : todayId.value)
+    // 必須是瞬間捲動。html 有 scroll-behavior: smooth，動畫途中 observer 會一路
+    // 吃到中間位置，最後停在錯的那一天，而且捲動結束就沒有事件能修正它。
+    target?.scrollIntoView({ block: 'center', behavior: 'instant' })
+    activeDay.value = todayId.value
+    await nextTick()
+  }
+
+  // 一定要等捲動結束才開始觀察，否則 observer 會用捲動前的位置決定當前日。
+  document.querySelectorAll('.day-section').forEach(el => observer.observe(el))
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {})
@@ -399,6 +481,8 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(pretextFrame)
   window.removeEventListener('online', updateNetwork)
   window.removeEventListener('offline', updateNetwork)
+  window.removeEventListener('popstate', syncFromUrl)
+  clearInterval(clockTimer)
 })
 </script>
 
@@ -513,6 +597,10 @@ onBeforeUnmount(() => {
             :key="day.id"
             :day="day"
             :note="dayNotes[day.id] || ''"
+            :is-today="day.id === todayId"
+            :collapsed="!!todayId && day.id !== todayId"
+            :current-item="day.id === todayId ? todayProgress.current : -1"
+            :next-item="day.id === todayId ? todayProgress.next : -1"
             @update:note="updateDayNote(day.id, $event)"
           />
         </section>
