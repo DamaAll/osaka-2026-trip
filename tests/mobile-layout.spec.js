@@ -273,6 +273,40 @@ test('installable icons resolve', async ({ page, request }) => {
 })
 
 /*
+ * manifest 會被打包成 assets/manifest-<hash>.webmanifest，所以裡面的相對路徑是
+ * 相對於 assets/ 而不是站台根目錄。start_url 寫 './' 會指到 /assets/，那裡沒有
+ * index.html——從主畫面圖示開啟 PWA 就會 404，用瀏覽器開網址卻正常，很難發現。
+ */
+test('the installed app launches into the itinerary, not a 404', async ({ page, request }) => {
+  await openTrip(page)
+
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href')
+  const manifestUrl = new URL(manifestHref, page.url())
+  const manifest = await (await request.get(manifestUrl.href)).json()
+
+  /*
+   * 必須比對「解析後的路徑」而不是打得開與否：vite preview 對任何未知路徑都會
+   * 回傳 index.html，所以 start_url 指到 /assets/ 在本機照樣 200，只有 GitHub
+   * Pages 會 404。這個測試曾經因此在壞掉的版本下通過。
+   */
+  const siteRoot = new URL('./', new URL(page.url()).origin + '/osaka-2026-trip/').pathname
+  const startUrl = new URL(manifest.start_url, manifestUrl)
+  expect(startUrl.pathname, 'start_url 必須指向站台根目錄，不能落在 assets/').toBe(siteRoot)
+
+  // scope 必須涵蓋 start_url，否則安裝後的導覽會被踢回瀏覽器。
+  const scope = new URL(manifest.scope, manifestUrl)
+  expect(scope.pathname).toBe(siteRoot)
+
+  const res = await request.get(startUrl.href)
+  expect(res.status()).toBe(200)
+  expect(await res.text()).toContain('<div id="app">')
+
+  // 真的從 start_url 開，要看得到行程而不是錯誤頁。
+  await page.goto(startUrl.href, { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.view-tabs button')).toHaveCount(5)
+})
+
+/*
  * 出發前打開跟旅行中打開是兩種完全不同的畫面，而測試機的日期永遠是出發前，
  * 所以旅行中的行為只能靠固定時鐘來驗。這裡假裝現在是 9/23 中午的京都。
  */

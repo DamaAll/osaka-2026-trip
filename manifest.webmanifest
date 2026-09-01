@@ -1,8 +1,8 @@
 {
   "name": "大阪 5 天 4 夜｜2026",
   "short_name": "大阪 2026",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/osaka-2026-trip/",
+  "scope": "/osaka-2026-trip/",
   "display": "standalone",
   "background_color": "#0b3a66",
   "theme_color": "#0b3a66",
