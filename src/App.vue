@@ -17,7 +17,10 @@ let pretextFrame
 const preparedText = new Map()
 
 const checklistItems = computed(() => trip.checklist.flatMap(([, items]) => items))
+const shoppingItems = computed(() => (trip.shoppingList || []).flatMap(({ items }) => items))
+const persistedItems = computed(() => [...checklistItems.value, ...shoppingItems.value])
 const completedCount = computed(() => checklistItems.value.filter(([key]) => checks[key]).length)
+const shoppingCompletedCount = computed(() => shoppingItems.value.filter(([key]) => checks[key]).length)
 const progress = computed(() => checklistItems.value.length ? Math.round((completedCount.value / checklistItems.value.length) * 100) : 0)
 const criticalActions = computed(() => (trip.priorityActions || []).map(item => ({
   ...item,
@@ -36,7 +39,7 @@ const countdownText = computed(() => {
 })
 
 const loadChecks = () => {
-  checklistItems.value.forEach(([key]) => {
+  persistedItems.value.forEach(([key]) => {
     checks[key] = localStorage.getItem(`osaka_2026_${key}`) === '1'
   })
 }
@@ -49,6 +52,11 @@ const updateCheck = (key, value) => {
 const resetChecklist = () => {
   if (!window.confirm('要清除所有行前 Checklist 勾選狀態嗎？')) return
   checklistItems.value.forEach(([key]) => updateCheck(key, false))
+}
+
+const resetShopping = () => {
+  if (!window.confirm('要清除購物清單的勾選狀態嗎？')) return
+  shoppingItems.value.forEach(([key]) => updateCheck(key, false))
 }
 
 const scrollToDay = (id) => {
@@ -223,6 +231,27 @@ onBeforeUnmount(() => {
           </div>
         </section>
 
+        <section class="content-section money-section" aria-labelledby="money-title">
+          <div class="section-title-row">
+            <div><p class="section-kicker">MONEY</p><h2 id="money-title">日幣要準備多少</h2><p class="section-caption">大額購物刷卡，現金留給加值、小店與備援。</p></div>
+          </div>
+          <div class="money-hero">
+            <div><small>每人實體現金</small><strong>{{ trip.moneyPlan.cashPerPerson }}</strong><span>建議分兩處保管</span></div>
+            <div><small>4 人現金合計</small><strong>{{ trip.moneyPlan.cashForGroup }}</strong><span>不要由同一人全拿</span></div>
+          </div>
+          <div class="trip-budget-row">
+            <span><small>整趟基本支出預估</small><strong>{{ trip.moneyPlan.tripBudget }}</strong></span>
+            <p data-pretext>{{ trip.moneyPlan.tripBudgetNote }}</p>
+          </div>
+          <div class="money-breakdown">
+            <article v-for="([title, amount, note]) in trip.moneyPlan.breakdown" :key="title">
+              <span><strong>{{ title }}</strong><b>{{ amount }}</b></span>
+              <p>{{ note }}</p>
+            </article>
+          </div>
+          <a class="money-source" :href="trip.moneyPlan.sourceUrl" target="_blank" rel="noopener noreferrer">日本官方支付方式說明</a>
+        </section>
+
         <section class="content-section">
           <div class="section-title-row"><div><p class="section-kicker">PRE-TRIP</p><h2>出發前快速連結</h2><p class="section-caption">常用入口集中在這裡，出發前逐一確認。</p></div></div>
           <div class="quick-grid">
@@ -230,6 +259,23 @@ onBeforeUnmount(() => {
               <div class="quick-card-top"><span class="quick-mark">{{ quickMarks[index] || String(index + 1).padStart(2, '0') }}</span><span class="quick-arrow">OPEN</span></div>
               <div><strong>{{ item.title }}</strong><p>{{ item.desc }}</p></div>
             </a>
+          </div>
+        </section>
+
+        <section class="content-section checklist-section shopping-section" aria-labelledby="shopping-title">
+          <div class="section-title-row checklist-title-row">
+            <div><p class="section-kicker">SHOPPING</p><h2 id="shopping-title">常見購物清單</h2><p class="section-caption">{{ shoppingCompletedCount }} / {{ shoppingItems.length }} 項已處理；先列需求再進店。</p></div>
+            <button class="text-button" type="button" @click="resetShopping">重設</button>
+          </div>
+          <div class="check-groups">
+            <section v-for="group in trip.shoppingList" :key="group.group" class="check-group">
+              <h3>{{ group.group }}</h3>
+              <label v-for="([key, title, desc]) in group.items" :key="key" class="check-row" :class="{ checked: !!checks[key] }">
+                <input type="checkbox" :checked="!!checks[key]" @change="updateCheck(key, $event.target.checked)" />
+                <span class="custom-check">✓</span>
+                <span class="check-copy"><strong>{{ title }}</strong><small>{{ desc }}</small></span>
+              </label>
+            </section>
           </div>
         </section>
 

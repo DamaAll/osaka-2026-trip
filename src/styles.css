@@ -247,6 +247,65 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
   font-weight: 800;
 }
 
+/* Money plan */
+.money-hero {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.money-hero > div {
+  min-width: 0;
+  min-height: 122px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+  border-radius: 17px;
+  background: #0b3a66;
+  color: #fff;
+}
+.money-hero > div:last-child { background: #eaf3ff; color: #164f82; }
+.money-hero small { margin-bottom: auto; color: rgba(255,255,255,.62); font-size: 8px; font-weight: 800; }
+.money-hero > div:last-child small { color: #6182a1; }
+.money-hero strong { font-size: 18px; line-height: 1.15; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.money-hero span { margin-top: 6px; color: rgba(255,255,255,.66); font-size: 9px; }
+.money-hero > div:last-child span { color: #6182a1; }
+.trip-budget-row {
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr);
+  gap: 14px;
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid #e0e5eb;
+  border-radius: 15px;
+  background: #fff;
+}
+.trip-budget-row span small,
+.trip-budget-row span strong { display: block; }
+.trip-budget-row span small { color: #7c858f; font-size: 8px; font-weight: 800; }
+.trip-budget-row span strong { margin-top: 4px; color: #0b65cf; font-size: 16px; }
+.trip-budget-row p { margin: 0; color: #69717a; font-size: 10px; line-height: 1.5; overflow: hidden; }
+.money-breakdown { display: grid; gap: 1px; margin-top: 8px; overflow: hidden; border: 1px solid #e3e7eb; border-radius: 15px; background: #e3e7eb; }
+.money-breakdown article { padding: 11px 13px; background: #fff; }
+.money-breakdown article > span { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.money-breakdown strong { font-size: 11px; }
+.money-breakdown b { flex: 0 0 auto; color: #0b65cf; font-size: 10px; }
+.money-breakdown p { margin: 4px 0 0; color: #747c85; font-size: 9px; line-height: 1.45; }
+.money-source {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 9px;
+  padding: 0 12px;
+  border: 1px solid #d6e4f4;
+  border-radius: 10px;
+  background: #f3f8fe;
+  color: #285c91;
+  font-size: 9px;
+  font-weight: 800;
+}
+.shopping-section { scroll-margin-top: 84px; }
+
 /* Section heading */
 .section-title-row { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 0 4px 13px; }
 .section-kicker { margin: 0 0 4px; color: var(--blue); font-size: 9px; font-weight: 850; letter-spacing: .15em; }
@@ -487,6 +546,9 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
   .express-visual { min-height: 150px; }
   .hero-status-grid { grid-template-columns: 1fr 1fr; }
   .status-card-main { grid-column: 1 / -1; }
+  .money-hero { grid-template-columns: 1fr; }
+  .money-hero > div { min-height: 104px; }
+  .trip-budget-row { grid-template-columns: 1fr; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -9,6 +9,35 @@ decisions:[
 {when:'D1 · 15:15',badge:'CUT-OFF',title:'巴士是否還等 15:32',rule:'15:15 前已領到行李並往 T2 巴士站移動才搭 15:32；否則直接切 16:32 到上本町。',tone:'amber',action:'開官方時刻表',url:'https://www.kate.co.jp/timetable/detail/UH/dep'},
 {when:'D2 · 08:15',badge:'OPTIONAL',title:'大阪城不是必去',rule:'睡眠不足、下雨或購物優先就跳過；10:00 直接往日本橋，不補行程。',tone:'blue'},
 {when:'D3 · 出發前',badge:'RAIN B',title:'京都大雨改走室內線',rule:'縮短伏見稻荷，改三十三間堂、錦市場、寺町與新京極商店街。',tone:'green',action:'京都官方雨天建議',url:'https://global.kyoto.travel/en/faq/detail.php?faq_id=1019'}],
+moneyPlan:{
+cashPerPerson:'¥30,000–40,000',
+cashForGroup:'¥120,000–160,000',
+tripBudget:'約 ¥55,000–70,000 / 人',
+tripBudgetNote:'不含機票、飯店、USJ 一般門票與購物；包含交通、餐食、Express 預算與零星門票。',
+breakdown:[
+['Suica 加值','¥3,000–5,000','車站加值機多數要用現金。'],
+['小店／市場／寺社','¥10,000–15,000','京都小店、錦市場與臨時餐食。'],
+['置物櫃／零食／短程交通','¥5,000–8,000','處理不能刷卡或臨時改線。'],
+['緊急備用','¥10,000','分開保管，不把 4 人現金放同一人身上。']],
+sourceUrl:'https://www.japan.travel/en/plan/cashless-payments-in-japan/'},
+shoppingList:[
+{group:'藥妝 / 日用品',items:[
+['shop_skincare','防曬、保養、面膜','先拍台灣價格與容量，避免只看折扣牌。'],
+['shop_daily','牙膏、洗護、生活小物','確認液體容量與行李空間再買。'],
+['shop_stationery','文具、毛巾、雜貨','適合最後用剩餘預算補。']]},
+{group:'動漫 / 模型',items:[
+['shop_figures','模型、公仔、景品','日本橋先比 Surugaya、Joshin、Animate。'],
+['shop_character','角色周邊、卡牌、扭蛋','先列作品與角色，不看到限定就全部買。']]},
+{group:'3C / 相機',items:[
+['shop_camera','鏡頭、相機配件','確認保固、語言、盒況與退稅後價格。'],
+['shop_electronics','記憶卡、線材、小型 3C','確認電壓、插頭與是否真的比台灣便宜。']]},
+{group:'服飾 / 鞋 / 古著',items:[
+['shop_clothes','服飾、外套、古著','Orange Street 試穿後再決定，不只看標示尺寸。'],
+['shop_shoes','球鞋、襪子、配件','保留鞋盒前先確認托運空間。']]},
+{group:'伴手禮 / USJ',items:[
+['shop_snacks','常溫包裝零食、茶、咖啡','先分送禮名單與數量，最後一晚統一裝箱。'],
+['shop_usj','USJ 限定頭飾、服飾、角色周邊','先鎖定角色與預算，避免玩到一半一直提袋。'],
+['shop_self','自己真正想留的一件紀念品','不要只幫別人買，留一項給自己。']]}],
 quickLinks:[
 {title:'eSIM',desc:'KKday 日本 SoftBank eSIM',url:'https://www.kkday.com/zh-tw/product/149025-japan-network-card-softbank-high-speed-500mb-1gb-2gb-3gb-esim',label:'KKday eSIM'},
 {title:'Visit Japan Web',desc:'入境審查＋海關資料，QR Code 建議截圖',url:'https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/',label:'官方繁中頁'},

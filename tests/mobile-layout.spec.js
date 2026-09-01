@@ -77,11 +77,23 @@ test('decision rules and touch targets are usable on mobile', async ({ page }) =
 
   await page.getByRole('tab', { name: /準備/ }).click()
   await expect(page.getByRole('heading', { name: '出發前最後防線' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '日幣要準備多少' })).toBeVisible()
+  await expect(page.getByText('¥30,000–40,000')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '常見購物清單' })).toBeVisible()
+  await expect(page.locator('.shopping-section .check-row')).toHaveCount(12)
   await expect(page.locator('.critical-row')).toHaveCount(5)
   await expect(page.locator('.day-section')).toHaveCount(0)
   await expect(page.locator('.bottom-nav')).toHaveCount(0)
 
-  const undersizedTargets = await page.locator('.view-tabs button, .primary-cta, .text-button').evaluateAll(elements => (
+  const prepLayout = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    clippedPretext: [...document.querySelectorAll('[data-pretext]')].filter(element => element.scrollHeight > element.clientHeight + 1).length
+  }))
+  expect(prepLayout.scrollWidth).toBeLessThanOrEqual(prepLayout.innerWidth)
+  expect(prepLayout.clippedPretext).toBe(0)
+
+  const undersizedTargets = await page.locator('.view-tabs button, .primary-cta, .text-button, .money-source').evaluateAll(elements => (
     elements.filter(element => element.getBoundingClientRect().height < 44).map(element => element.textContent.trim())
   ))
   expect(undersizedTargets).toEqual([])
@@ -102,11 +114,16 @@ test('checklist persists after reload', async ({ page }) => {
   await page.getByRole('tab', { name: /準備/ }).click()
 
   const firstCheck = page.locator('.check-row input').first()
+  const firstShoppingCheck = page.locator('.shopping-section .check-row input').first()
   if (await firstCheck.isChecked()) await firstCheck.uncheck()
+  if (await firstShoppingCheck.isChecked()) await firstShoppingCheck.uncheck()
   await firstCheck.check()
+  await firstShoppingCheck.check()
   await expect(firstCheck).toBeChecked()
+  await expect(firstShoppingCheck).toBeChecked()
 
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.getByRole('tab', { name: /準備/ }).click()
   await expect(page.locator('.check-row input').first()).toBeChecked()
+  await expect(page.locator('.shopping-section .check-row input').first()).toBeChecked()
 })
