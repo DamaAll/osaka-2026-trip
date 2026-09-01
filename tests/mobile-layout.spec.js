@@ -36,7 +36,7 @@ for (const width of widths) {
     await expect(page.locator('.timeline-side')).toHaveCount(0)
     await expect(page.locator('.view-tabs button')).toHaveCount(5)
     await expect(page.locator('.critical-row')).toHaveCount(0)
-    await expect(page.locator('.decision-card')).toHaveCount(6)
+    await expect(page.locator('.decision-card')).toHaveCount(7)
     await expect(page.locator('.rain-plan')).toHaveCount(2)
     await expect(page.locator('.choice-row')).toHaveCount(3)
 
@@ -169,6 +169,16 @@ test('safety view exposes dialable hotlines and typhoon stages', async ({ page }
   await expect(page.getByRole('heading', { name: '颱風與班機' })).toBeVisible()
   await expect(page.locator('.stage-list article')).toHaveCount(3)
   await expect(page.getByRole('heading', { name: '緊急資訊卡' })).toBeVisible()
+
+  // 證件遺失與網路不通是最可能真的發生的兩件事，處置流程要有順序。
+  const lost = page.locator('.fold', { hasText: '護照或錢包遺失' })
+  await lost.locator('summary').click()
+  await expect(lost.locator('.step-list li')).toHaveCount(5)
+  await expect(lost.locator('.fold-warning')).toContainText('只有 9/24')
+
+  const network = page.locator('.fold', { hasText: 'eSIM 沒啟用' })
+  await network.locator('summary').click()
+  await expect(network.locator('.step-list li')).toHaveCount(5)
 
   await noHorizontalOverflow(page)
 })

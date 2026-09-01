@@ -777,6 +777,31 @@ onBeforeUnmount(() => {
         </section>
 
         <details class="fold">
+          <summary><strong>護照或錢包遺失</strong><small>只有 9/24 辦得了事，先看這個</small></summary>
+          <div class="fold-body">
+            <p class="fold-warning">{{ trip.emergency.lost.warning }}</p>
+            <ol class="step-list">
+              <li v-for="([title, desc]) in trip.emergency.lost.steps" :key="title">
+                <strong>{{ title }}</strong><span>{{ desc }}</span>
+              </li>
+            </ol>
+            <p class="fold-note"><b>辦事處時間：</b>{{ trip.emergency.lost.office }}</p>
+          </div>
+        </details>
+
+        <details class="fold">
+          <summary><strong>網路不通 / eSIM 沒啟用</strong><small>導航、翻譯、USJ 抽券都要網路</small></summary>
+          <div class="fold-body">
+            <p class="fold-warning">{{ trip.emergency.noNetwork.warning }}</p>
+            <ol class="step-list">
+              <li v-for="([title, desc]) in trip.emergency.noNetwork.steps" :key="title">
+                <strong>{{ title }}</strong><span>{{ desc }}</span>
+              </li>
+            </ol>
+          </div>
+        </details>
+
+        <details class="fold">
           <summary><strong>生病或受傷</strong><small>看診收據就是理賠文件</small></summary>
           <div class="fold-body">
             <div class="rule-list">
