@@ -24,7 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure GitHub Pages is enabled
+      # 只在 404 時建立設定是不夠的：既有的 legacy（發佈 repo 根目錄）設定會回 200，
+      # 於是這一步靜靜跳過，Actions 每次都綠燈，但上線的其實是未建置的原始碼。
+      # 這裡必須連 build_type 也一起校正。
+      - name: Ensure GitHub Pages builds from this workflow
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -44,7 +47,19 @@ jobs:
               -d '{"build_type":"workflow"}' \
               "$api")
             test "$create_status" = "201"
-          elif [ "$status" != "200" ]; then
+          elif [ "$status" = "200" ]; then
+            build_type=$(python3 -c "import json;print(json.load(open('/tmp/pages.json')).get('build_type',''))")
+            echo "current build_type: ${build_type}"
+            if [ "$build_type" != "workflow" ]; then
+              echo "switching Pages to workflow builds"
+              update_status=$(curl -sS -o /tmp/pages-update.json -w "%{http_code}" \
+                -X PUT "${headers[@]}" \
+                -H "Content-Type: application/json" \
+                -d '{"build_type":"workflow"}' \
+                "$api")
+              test "$update_status" = "204"
+            fi
+          else
             cat /tmp/pages.json || true
             exit 1
           fi

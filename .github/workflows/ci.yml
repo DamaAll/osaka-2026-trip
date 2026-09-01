@@ -22,18 +22,20 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build Vue app
         run: npm run build
+      # 必須與 pages.yml 一致：不要 cp 根目錄的舊 sw.js，那會蓋掉 plugin 產生的
+      # precache 清單，離線快取就會少掉 JS/CSS，mobile 測試也會跟著紅。
       - name: Prepare production-like dist
-        run: |
-          cp data.js dist/data.js
-          cp manifest.webmanifest dist/manifest.webmanifest
-          cp sw.js dist/sw.js
-          touch dist/.nojekyll
+        run: touch dist/.nojekyll
       - name: Verify expected output
         run: |
+          set -euo pipefail
           test -f dist/index.html
-          test -f dist/data.js
           test -f dist/sw.js
           test -d dist/assets
+          grep -q '"./index.html"' dist/sw.js
+          grep -q '\.js"' dist/sw.js
+          grep -q '\.css"' dist/sw.js
+          ! grep -q '__PRECACHE_ASSETS__' dist/sw.js
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Review 375 / 390 / 430px layouts
