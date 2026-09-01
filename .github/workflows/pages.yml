@@ -60,12 +60,19 @@ jobs:
       - name: Build Vue app
         run: npm run build
 
-      - name: Copy static trip data and PWA files
+      # data.js 已由 Vite 打包進 JS，manifest 會以 hash 檔名產出，sw.js 由
+      # precache-service-worker plugin 寫入實際資產清單。這裡再 cp 一次根目錄的
+      # 舊檔會把產生好的 sw.js 蓋掉，離線快取就會少掉 JS/CSS。只留 .nojekyll。
+      - name: Disable Jekyll processing
+        run: touch dist/.nojekyll
+
+      - name: Verify service worker precache survived the build
         run: |
-          cp data.js dist/data.js
-          cp manifest.webmanifest dist/manifest.webmanifest
-          cp sw.js dist/sw.js
-          touch dist/.nojekyll
+          set -euo pipefail
+          grep -q '"./index.html"' dist/sw.js
+          grep -q '\.js"' dist/sw.js
+          grep -q '\.css"' dist/sw.js
+          ! grep -q '__PRECACHE_ASSETS__' dist/sw.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -30,16 +30,22 @@ defineProps({ day: { type: Object, required: true } })
       <div class="day-image-scrim" aria-hidden="true"></div>
     </div>
 
-    <aside v-if="day.rainPlan" class="rain-plan">
-      <div class="rain-plan-heading">
-        <div><span>WEATHER SWITCH</span><h3>{{ day.rainPlan.title }}</h3></div>
-        <a :href="day.rainPlan.url" target="_blank" rel="noopener noreferrer">官方建議</a>
+    <details v-if="day.weatherPlan" class="rain-plan">
+      <summary>
+        <div><span>WEATHER SWITCH</span><h3>{{ day.weatherPlan.title }}</h3></div>
+        <b>{{ day.weatherPlan.branches.map(branch => branch.tag).join(' / ') }}</b>
+      </summary>
+      <div class="rain-plan-body">
+        <article v-for="branch in day.weatherPlan.branches" :key="branch.tag">
+          <h4>{{ branch.tag }}</h4>
+          <p><strong>啟用條件：</strong>{{ branch.trigger }}</p>
+          <ol>
+            <li v-for="step in branch.steps" :key="step">{{ step }}</li>
+          </ol>
+        </article>
+        <a v-if="day.weatherPlan.url" :href="day.weatherPlan.url" target="_blank" rel="noopener noreferrer">官方建議</a>
       </div>
-      <p><strong>啟用條件：</strong>{{ day.rainPlan.trigger }}</p>
-      <ol>
-        <li v-for="step in day.rainPlan.steps" :key="step">{{ step }}</li>
-      </ol>
-    </aside>
+    </details>
 
     <div class="journey-list">
       <article
@@ -60,6 +66,7 @@ defineProps({ day: { type: Object, required: true } })
 
           <h3>{{ item.title }}</h3>
           <p v-if="item.desc">{{ item.desc }}</p>
+          <p v-if="item.note" class="journey-note">{{ item.note }}</p>
           <div v-if="item.choices" class="choice-list" aria-label="午餐候選">
             <a
               v-for="choice in item.choices"
@@ -89,7 +96,7 @@ defineProps({ day: { type: Object, required: true } })
 
 .day-count {
   padding: 6px 9px;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .01em;
 }
 
@@ -113,44 +120,79 @@ defineProps({ day: { type: Object, required: true } })
   background: #eff9f5;
 }
 
-.rain-plan-heading {
+.rain-plan > summary {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
 }
 
-.rain-plan-heading span {
+.rain-plan > summary::-webkit-details-marker { display: none; }
+
+.rain-plan > summary span {
   display: block;
   color: #16835b;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 850;
   letter-spacing: .12em;
 }
 
-.rain-plan-heading h3 {
+.rain-plan > summary h3 {
   margin: 3px 0 0;
   font-size: 16px;
 }
 
-.rain-plan-heading a {
+.rain-plan > summary b {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid #a9d7c7;
+  border-radius: 999px;
+  background: #fff;
+  color: #116b4b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rain-plan[open] > summary b::after { content: ' ▴'; }
+.rain-plan:not([open]) > summary b::after { content: ' ▾'; }
+
+.rain-plan-body > article + article {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #cfe7dc;
+}
+
+.rain-plan-body h4 {
+  margin: 14px 0 0;
+  color: #116b4b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.rain-plan-body > article + article h4 { margin-top: 0; }
+
+.rain-plan p {
+  margin: 8px 0 0;
+  color: #3f6c5d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rain-plan-body > a {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  padding: 0 10px;
+  margin-top: 12px;
+  padding: 0 12px;
   border: 1px solid #a9d7c7;
   border-radius: 10px;
   background: #fff;
   color: #116b4b;
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.rain-plan > p {
-  margin: 10px 0 0;
-  color: #3f6c5d;
   font-size: 11px;
-  line-height: 1.5;
+  font-weight: 800;
 }
 
 .rain-plan ol {
@@ -167,7 +209,7 @@ defineProps({ day: { type: Object, required: true } })
   position: relative;
   padding-left: 24px;
   color: #315a4d;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -183,7 +225,7 @@ defineProps({ day: { type: Object, required: true } })
   border-radius: 5px;
   background: #d5eee5;
   color: #116b4b;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 850;
 }
 
@@ -265,7 +307,7 @@ defineProps({ day: { type: Object, required: true } })
   border-radius: 8px;
   background: #eef6ff;
   color: #0a6df0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.25;
   font-weight: 850;
   overflow-wrap: anywhere;
@@ -273,7 +315,7 @@ defineProps({ day: { type: Object, required: true } })
 
 .journey-stop {
   color: #a1a4aa;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 850;
   letter-spacing: .1em;
@@ -286,7 +328,7 @@ defineProps({ day: { type: Object, required: true } })
   padding: 0 7px;
   border: 1px solid transparent;
   border-radius: 7px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 850;
 }
 
@@ -306,6 +348,21 @@ defineProps({ day: { type: Object, required: true } })
   color: #68686e;
   font-size: 12px;
   line-height: 1.58;
+}
+
+/*
+ * note 是「現場才會用到」的提醒：禮儀、免稅、轉場風險。刻意做得比 desc 弱一階，
+ * 讓時間軸掃讀時不會被打斷，但停下來看某一站時找得到。
+ */
+.journey-content > p.journey-note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-left: 2px solid #f0c97b;
+  border-radius: 0 8px 8px 0;
+  background: #fffaf0;
+  color: #7a6224;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .choice-list {
@@ -329,7 +386,7 @@ defineProps({ day: { type: Object, required: true } })
 
 .choice-row > span:first-child {
   color: #167253;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -343,20 +400,20 @@ defineProps({ day: { type: Object, required: true } })
 }
 
 .choice-copy strong {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.35;
 }
 
 .choice-copy small {
   margin-top: 2px;
   color: #70757b;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .choice-row > b {
   color: #8a929c;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
