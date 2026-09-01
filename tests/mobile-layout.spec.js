@@ -354,6 +354,56 @@ test('back-to-now appears only when the current stop is off screen', async ({ pa
   await expect(button).toBeHidden()
 })
 
+/*
+ * 時間自己走過一站時，.stop-now 會換到別的元素。若 IntersectionObserver 還盯著
+ * 舊的那個，「回到現在」就會依上一站的位置決定顯示與否。這裡讓時鐘跨過 12:30。
+ */
+test('back-to-now follows the current stop when time moves on', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-23T12:29:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('10:20–12:30')
+
+  // 跨過 12:30，當前站應自動換成午餐那一段。
+  // 用 runFor 而不是 fastForward：只有 runFor 會真的觸發每分鐘的 setInterval。
+  await page.clock.runFor(120000)
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+
+  /*
+   * 關鍵：捲到「只有新的當前站在視野、舊的那站已離開」的位置。
+   * 若 observer 還盯著舊元素，就會誤判成離開視野而顯示按鈕。
+   * 捲到 D5 之類兩站都看不到的地方會讓新舊行為一致，測不出差別。
+   */
+  await page.locator('#d3-stop-4').evaluate(el => {
+    el.scrollIntoView({ block: 'start', behavior: 'instant' })
+    window.scrollBy(0, 120)
+  })
+  await expect(page.locator('#d3-stop-3')).not.toBeInViewport()
+  await expect(page.locator('#d3-stop-4')).toBeInViewport()
+  await expect(page.locator('.back-to-now')).toBeHidden()
+
+  // 真的捲走時仍要正常出現，並能捲回新的當前站。
+  await page.locator('#d5').scrollIntoViewIfNeeded()
+  await expect(page.locator('.back-to-now')).toBeVisible()
+  await page.locator('.back-to-now').click()
+  await expect(page.locator('#d3 .stop-now')).toBeInViewport()
+  await expect(page.locator('.back-to-now')).toBeHidden()
+})
+
+// PWA 整晚開著跨過午夜時，Today Mode 必須自己換日，不能等使用者重新載入。
+test('today rolls over at midnight without a reload', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-23T23:58:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  await expect(page.locator('.day-section.is-today')).toHaveAttribute('id', 'd3')
+
+  await page.clock.runFor(300000)
+  await expect(page.locator('.day-section.is-today')).toHaveAttribute('id', 'd4')
+  await expect(page.locator('#d3.is-collapsed')).toHaveCount(1)
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })

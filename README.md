@@ -37,6 +37,11 @@ workflow still reports success. `pages.yml` detects this and fails loudly, but
 it cannot fix it: changing Pages configuration needs repo admin rights, and
 `GITHUB_TOKEN` only carries `pages: write` (deploy, not configure).
 
+`pages.yml` runs `npm run test:mobile` before deploying, so a green Pages run
+means the build *and* the mobile/Travel Mode regression passed. `ci.yml` only
+triggers on pull requests, so without this step a direct push to `main` ships
+without ever running the suite. Do not drop it to speed up deploys.
+
 Do not add `cp sw.js dist/sw.js` back to either workflow. `public/sw.js` is a
 template; `vite.config.js` writes the real hashed asset list into it at build
 time. Copying the root `sw.js` over the generated one silently empties the

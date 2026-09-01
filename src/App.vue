@@ -1,6 +1,6 @@
 <script setup>
 import { layout, prepare, setLocale } from '@chenglou/pretext'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import tripData from '../data.js'
 import DaySection from './components/DaySection.vue'
 
@@ -65,15 +65,22 @@ const criticalActions = computed(() => (trip.priorityActions || []).map(item => 
 })))
 const criticalRemaining = computed(() => criticalActions.value.filter(item => !item.complete).length)
 
+/*
+ * 全 App 只有一個「現在」。先前 tripPhase / currentDayIndex / daysToStart 各自
+ * 呼叫 new Date()，computed 沒有 reactive 依賴，所以 PWA 一直開著跨過午夜時
+ * 不會換日。改成統一從這個 ref 推導，每分鐘更新一次就全部跟著動。
+ */
+const now = ref(new Date())
+let clockTimer
+
 // 依日期決定「現在該看什麼」：出發前看準備，旅行中看當天，結束後收起來。
 const tripPhase = computed(() => {
-  const now = new Date()
-  if (now >= tripEnd) return 'after'
-  if (now >= tripStart) return 'during'
+  if (now.value >= tripEnd) return 'after'
+  if (now.value >= tripStart) return 'during'
   return 'before'
 })
 
-const daysToStart = computed(() => Math.ceil((tripStart - new Date()) / oneDay))
+const daysToStart = computed(() => Math.ceil((tripStart - now.value) / oneDay))
 
 /*
  * 「我現在該在哪一站」是旅行中最常問的一句，而這頁有 18 個螢幕高。
@@ -106,19 +113,17 @@ const watchCurrentStop = async () => {
   stopWatcher.observe(target)
 }
 
-const nowMinutes = ref(0)
 // 一定要用日本時間算。手機若還停在台灣時區就會慢一小時，
 // 那會讓「現在」指到上一站——比不標示更糟。
 const japanClock = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hour12: false
 })
-const readClock = () => {
-  const parts = japanClock.formatToParts(new Date())
+const nowMinutes = computed(() => {
+  const parts = japanClock.formatToParts(now.value)
   const hour = Number(parts.find(part => part.type === 'hour')?.value ?? 0)
   const minute = Number(parts.find(part => part.type === 'minute')?.value ?? 0)
-  nowMinutes.value = hour * 60 + minute
-}
-let clockTimer
+  return hour * 60 + minute
+})
 
 const todayId = computed(() => (currentDayIndex.value >= 0 ? trip.days[currentDayIndex.value].id : ''))
 
@@ -139,7 +144,7 @@ const todayProgress = computed(() => {
 
 const currentDayIndex = computed(() => {
   if (tripPhase.value !== 'during') return -1
-  const index = Math.floor((new Date() - tripStart) / oneDay)
+  const index = Math.floor((now.value - tripStart) / oneDay)
   return index >= 0 && index < trip.days.length ? index : -1
 })
 
@@ -178,6 +183,13 @@ const focusDayLabel = computed(() => {
   const index = trip.days.findIndex(day => day.id === focusDayId.value)
   return index >= 0 ? `D${index + 1}` : ''
 })
+
+/*
+ * 時間走過一站時 Vue 會把 .stop-now 換到另一個元素，但 IntersectionObserver
+ * 仍然盯著舊的那個，於是「回到現在」會依照上一站的位置決定要不要出現。
+ * 換站就重綁。flush: 'post' 是為了等 DOM 真的換完再抓新元素。
+ */
+watch(() => todayProgress.value.current, () => { watchCurrentStop() }, { flush: 'post' })
 
 const loadChecks = () => {
   checklistItems.value.forEach(([key]) => {
@@ -474,8 +486,7 @@ onMounted(async () => {
   loadShopping()
   loadEmergencyInfo()
   loadDayNotes()
-  readClock()
-  clockTimer = setInterval(readClock, 60000)
+  clockTimer = setInterval(() => { now.value = new Date() }, 60000)
   /*
    * 旅行中直接用收合版。完整 hero 佔首屏 47%，而收合條已經帶著同樣的焦點資訊；
    * 每次重開 PWA 或重新整理都要先滑過半個螢幕才看得到內容，不值得。

@@ -98,6 +98,14 @@ jobs:
           grep -q '\.css"' dist/sw.js
           ! grep -q '__PRECACHE_ASSETS__' dist/sw.js
 
+      # 測試必須擋在部署前面。Validate site 只跑 pull_request，直接 push main 時
+      # 不會執行，於是「Pages 綠燈」只代表建得起來，不代表 UX 迴歸有過。
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Mobile and Travel Mode regression
+        run: npm run test:mobile
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
