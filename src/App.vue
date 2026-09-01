@@ -7,21 +7,27 @@ import DaySection from './components/DaySection.vue'
 const trip = tripData || { quickLinks: [], costs: [], days: [], travelInfo: [], checklist: [] }
 const navLabels = ['抵達', '購物', '京都', 'USJ', '回台']
 const quickMarks = ['SIM', 'VJW', '役', 'USJ']
+const shoppingCategories = ['藥妝 / 日用品', '動漫 / 模型', '3C / 相機', '服飾 / 鞋', '伴手禮', 'USJ', '其他']
+const shoppingStorageKey = 'osaka_2026_shopping_entries'
 const activeView = ref('itinerary')
 const activeDay = ref(trip.days[0]?.id || '')
 const isOnline = ref(navigator.onLine)
 const checks = reactive({})
+const shoppingEntries = ref([])
+const shoppingDraft = reactive({ name: '', category: shoppingCategories[0], price: '', quantity: 1 })
+const shoppingError = ref('')
 let observer
 let pretextObserver
 let pretextFrame
 const preparedText = new Map()
 
 const checklistItems = computed(() => trip.checklist.flatMap(([, items]) => items))
-const shoppingItems = computed(() => (trip.shoppingList || []).flatMap(({ items }) => items))
-const persistedItems = computed(() => [...checklistItems.value, ...shoppingItems.value])
 const completedCount = computed(() => checklistItems.value.filter(([key]) => checks[key]).length)
-const shoppingCompletedCount = computed(() => shoppingItems.value.filter(([key]) => checks[key]).length)
 const progress = computed(() => checklistItems.value.length ? Math.round((completedCount.value / checklistItems.value.length) * 100) : 0)
+const shoppingTotal = computed(() => shoppingEntries.value.reduce((total, item) => (
+  total + Math.max(0, Number(item.price) || 0) * Math.max(1, Number(item.quantity) || 1)
+), 0))
+const shoppingAverage = computed(() => shoppingTotal.value / 4)
 const criticalActions = computed(() => (trip.priorityActions || []).map(item => ({
   ...item,
   complete: !!checks[item.key]
@@ -39,7 +45,7 @@ const countdownText = computed(() => {
 })
 
 const loadChecks = () => {
-  persistedItems.value.forEach(([key]) => {
+  checklistItems.value.forEach(([key]) => {
     checks[key] = localStorage.getItem(`osaka_2026_${key}`) === '1'
   })
 }
@@ -54,9 +60,69 @@ const resetChecklist = () => {
   checklistItems.value.forEach(([key]) => updateCheck(key, false))
 }
 
-const resetShopping = () => {
-  if (!window.confirm('要清除購物清單的勾選狀態嗎？')) return
-  shoppingItems.value.forEach(([key]) => updateCheck(key, false))
+const formatYen = (amount) => `¥${new Intl.NumberFormat('ja-JP').format(Math.round(Number(amount) || 0))}`
+
+const persistShopping = () => {
+  try {
+    localStorage.setItem(shoppingStorageKey, JSON.stringify(shoppingEntries.value))
+  } catch {
+    shoppingError.value = '無法儲存到這支手機，請確認瀏覽器沒有封鎖網站資料。'
+  }
+}
+
+const loadShopping = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(shoppingStorageKey) || '[]')
+    if (!Array.isArray(stored)) return
+    shoppingEntries.value = stored
+      .filter(item => item && typeof item.name === 'string')
+      .map(item => ({
+        id: String(item.id || `${Date.now()}-${Math.random()}`),
+        name: item.name.slice(0, 80),
+        category: shoppingCategories.includes(item.category) ? item.category : '其他',
+        price: Math.max(0, Number(item.price) || 0),
+        quantity: Math.min(99, Math.max(1, Number(item.quantity) || 1))
+      }))
+  } catch {
+    shoppingEntries.value = []
+  }
+}
+
+const addShoppingItem = () => {
+  const name = shoppingDraft.name.trim()
+  const price = Number(shoppingDraft.price)
+  const quantity = Math.min(99, Math.max(1, Number(shoppingDraft.quantity) || 1))
+  if (!name) {
+    shoppingError.value = '請先輸入品名。'
+    return
+  }
+  if (shoppingDraft.price === '' || !Number.isFinite(price) || price < 0) {
+    shoppingError.value = '請輸入有效的日幣單價。'
+    return
+  }
+  shoppingEntries.value.push({
+    id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+    name: name.slice(0, 80),
+    category: shoppingDraft.category,
+    price: Math.round(price),
+    quantity
+  })
+  shoppingDraft.name = ''
+  shoppingDraft.price = ''
+  shoppingDraft.quantity = 1
+  shoppingError.value = ''
+  persistShopping()
+}
+
+const removeShoppingItem = (id) => {
+  shoppingEntries.value = shoppingEntries.value.filter(item => item.id !== id)
+  persistShopping()
+}
+
+const clearShopping = () => {
+  if (!shoppingEntries.value.length || !window.confirm('要清除全部購物項目嗎？')) return
+  shoppingEntries.value = []
+  persistShopping()
 }
 
 const scrollToDay = (id) => {
@@ -109,6 +175,7 @@ const prepareTextLayout = async () => {
 
 onMounted(async () => {
   loadChecks()
+  loadShopping()
   window.addEventListener('online', updateNetwork)
   window.addEventListener('offline', updateNetwork)
 
@@ -182,9 +249,12 @@ onBeforeUnmount(() => {
       <button id="prep-tab" type="button" role="tab" aria-controls="view-content" :class="{ active: activeView === 'prep' }" :aria-selected="activeView === 'prep'" @click="switchView('prep')">
         <span>02</span><strong>準備</strong><small>Checklist {{ progress }}%</small>
       </button>
+      <button id="shopping-tab" type="button" role="tab" aria-controls="view-content" :class="{ active: activeView === 'shopping' }" :aria-selected="activeView === 'shopping'" @click="switchView('shopping')">
+        <span>03</span><strong>購物</strong><small>{{ formatYen(shoppingTotal) }}</small>
+      </button>
     </nav>
 
-    <div id="view-content" class="view-content" role="tabpanel" :aria-labelledby="activeView === 'itinerary' ? 'itinerary-tab' : 'prep-tab'">
+    <div id="view-content" class="view-content" role="tabpanel" :aria-labelledby="activeView === 'itinerary' ? 'itinerary-tab' : activeView === 'prep' ? 'prep-tab' : 'shopping-tab'">
       <template v-if="activeView === 'itinerary'">
         <section class="notice-card">
           <div class="notice-icon">!</div>
@@ -213,7 +283,7 @@ onBeforeUnmount(() => {
         </section>
       </template>
 
-      <template v-else>
+      <template v-else-if="activeView === 'prep'">
         <section class="content-section command-section" aria-labelledby="command-title">
           <div class="section-title-row command-title-row">
             <div><p class="section-kicker">TRIP CONTROL</p><h2 id="command-title">出發前最後防線</h2><p class="section-caption" data-pretext>先清掉會讓四個人卡在現場的項目，再處理一般行李。</p></div>
@@ -259,23 +329,6 @@ onBeforeUnmount(() => {
               <div class="quick-card-top"><span class="quick-mark">{{ quickMarks[index] || String(index + 1).padStart(2, '0') }}</span><span class="quick-arrow">OPEN</span></div>
               <div><strong>{{ item.title }}</strong><p>{{ item.desc }}</p></div>
             </a>
-          </div>
-        </section>
-
-        <section class="content-section checklist-section shopping-section" aria-labelledby="shopping-title">
-          <div class="section-title-row checklist-title-row">
-            <div><p class="section-kicker">SHOPPING</p><h2 id="shopping-title">常見購物清單</h2><p class="section-caption">{{ shoppingCompletedCount }} / {{ shoppingItems.length }} 項已處理；先列需求再進店。</p></div>
-            <button class="text-button" type="button" @click="resetShopping">重設</button>
-          </div>
-          <div class="check-groups">
-            <section v-for="group in trip.shoppingList" :key="group.group" class="check-group">
-              <h3>{{ group.group }}</h3>
-              <label v-for="([key, title, desc]) in group.items" :key="key" class="check-row" :class="{ checked: !!checks[key] }">
-                <input type="checkbox" :checked="!!checks[key]" @change="updateCheck(key, $event.target.checked)" />
-                <span class="custom-check">✓</span>
-                <span class="check-copy"><strong>{{ title }}</strong><small>{{ desc }}</small></span>
-              </label>
-            </section>
           </div>
         </section>
 
@@ -330,6 +383,42 @@ onBeforeUnmount(() => {
               <strong>{{ cost }}</strong><span class="cost-label">{{ label }}</span>
             </div>
           </div>
+        </section>
+      </template>
+
+      <template v-else>
+        <section class="content-section shopping-builder" aria-labelledby="shopping-title">
+          <div class="section-title-row shopping-title-row">
+            <div><p class="section-kicker">SHOPPING</p><h2 id="shopping-title">購物預算計算</h2><p class="section-caption">自行新增品項；單價或數量一改，總額立即更新並儲存在手機。</p></div>
+            <button class="text-button" type="button" :disabled="!shoppingEntries.length" @click="clearShopping">全部清除</button>
+          </div>
+
+          <div class="shopping-summary">
+            <div><small>目前總額</small><strong>{{ formatYen(shoppingTotal) }}</strong><span>{{ shoppingEntries.length }} 個品項</span></div>
+            <div><small>4 人平均</small><strong>{{ formatYen(shoppingAverage) }}</strong><span>僅供快速分攤</span></div>
+          </div>
+
+          <form class="shopping-form" @submit.prevent="addShoppingItem">
+            <label class="field-name"><span>品名</span><input v-model="shoppingDraft.name" type="text" maxlength="80" autocomplete="off" placeholder="例如：USJ 瑪利歐帽" /></label>
+            <label><span>分類</span><select v-model="shoppingDraft.category"><option v-for="category in shoppingCategories" :key="category" :value="category">{{ category }}</option></select></label>
+            <label><span>單價（日幣）</span><input v-model="shoppingDraft.price" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+            <label><span>數量</span><input v-model="shoppingDraft.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" /></label>
+            <button class="add-shopping-button" type="submit">加入購物清單</button>
+          </form>
+          <p v-if="shoppingError" class="shopping-error" role="alert">{{ shoppingError }}</p>
+
+          <div v-if="shoppingEntries.length" class="shopping-entry-list">
+            <article v-for="item in shoppingEntries" :key="item.id" class="shopping-entry">
+              <div class="shopping-entry-topline"><span>{{ item.category }}</span><button type="button" :aria-label="`刪除 ${item.name}`" @click="removeShoppingItem(item.id)">刪除</button></div>
+              <label class="entry-name"><span>品名</span><input v-model.trim="item.name" type="text" maxlength="80" @input="persistShopping" /></label>
+              <div class="entry-numbers">
+                <label><span>單價</span><input v-model.number="item.price" type="number" min="0" step="1" inputmode="numeric" @input="persistShopping" /></label>
+                <label><span>數量</span><input v-model.number="item.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" @input="persistShopping" /></label>
+                <output><span>小計</span><strong>{{ formatYen((Number(item.price) || 0) * Math.max(1, Number(item.quantity) || 1)) }}</strong></output>
+              </div>
+            </article>
+          </div>
+          <div v-else class="shopping-empty"><strong>還沒有購物項目</strong><span>先從上方輸入第一個想買的東西。</span></div>
         </section>
       </template>
     </div>

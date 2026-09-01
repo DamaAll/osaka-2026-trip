@@ -23,7 +23,7 @@ for (const width of widths) {
     await expect(page.locator('.day-nav-button')).toHaveCount(5)
     await expect(page.locator('.journey-list')).toHaveCount(5)
     await expect(page.locator('.timeline-side')).toHaveCount(0)
-    await expect(page.locator('.view-tabs button')).toHaveCount(2)
+    await expect(page.locator('.view-tabs button')).toHaveCount(3)
     await expect(page.locator('.critical-row')).toHaveCount(0)
     await expect(page.locator('.decision-card')).toHaveCount(3)
     await expect(page.locator('.rain-plan')).toHaveCount(1)
@@ -79,8 +79,7 @@ test('decision rules and touch targets are usable on mobile', async ({ page }) =
   await expect(page.getByRole('heading', { name: '出發前最後防線' })).toBeVisible()
   await expect(page.getByRole('heading', { name: '日幣要準備多少' })).toBeVisible()
   await expect(page.getByText('¥30,000–40,000')).toBeVisible()
-  await expect(page.getByRole('heading', { name: '常見購物清單' })).toBeVisible()
-  await expect(page.locator('.shopping-section .check-row')).toHaveCount(12)
+  await expect(page.getByRole('heading', { name: '購物預算計算' })).toHaveCount(0)
   await expect(page.locator('.critical-row')).toHaveCount(5)
   await expect(page.locator('.day-section')).toHaveCount(0)
   await expect(page.locator('.bottom-nav')).toHaveCount(0)
@@ -114,16 +113,42 @@ test('checklist persists after reload', async ({ page }) => {
   await page.getByRole('tab', { name: /準備/ }).click()
 
   const firstCheck = page.locator('.check-row input').first()
-  const firstShoppingCheck = page.locator('.shopping-section .check-row input').first()
   if (await firstCheck.isChecked()) await firstCheck.uncheck()
-  if (await firstShoppingCheck.isChecked()) await firstShoppingCheck.uncheck()
   await firstCheck.check()
-  await firstShoppingCheck.check()
   await expect(firstCheck).toBeChecked()
-  await expect(firstShoppingCheck).toBeChecked()
 
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.getByRole('tab', { name: /準備/ }).click()
   await expect(page.locator('.check-row input').first()).toBeChecked()
-  await expect(page.locator('.shopping-section .check-row input').first()).toBeChecked()
+})
+
+test('shopping calculator updates totals and persists user items', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+  await page.getByRole('tab', { name: /購物/ }).click()
+
+  await expect(page.getByRole('heading', { name: '購物預算計算' })).toBeVisible()
+  await expect(page.getByText('還沒有購物項目')).toBeVisible()
+
+  await page.getByLabel('品名', { exact: true }).fill('USJ 瑪利歐帽')
+  await page.getByLabel('單價（日幣）').fill('1200')
+  await page.getByLabel('數量', { exact: true }).fill('2')
+  await page.getByRole('button', { name: '加入購物清單' }).click()
+
+  await expect(page.locator('.shopping-entry')).toHaveCount(1)
+  await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥2,400')
+
+  await page.locator('.shopping-entry input[type="number"]').first().fill('1500')
+  await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥3,000')
+
+  const layout = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth
+  }))
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.innerWidth)
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.getByRole('tab', { name: /購物/ }).click()
+  await expect(page.locator('.shopping-entry')).toHaveCount(1)
+  await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥3,000')
 })
