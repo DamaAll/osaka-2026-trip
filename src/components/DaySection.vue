@@ -30,6 +30,17 @@ defineProps({ day: { type: Object, required: true } })
       <div class="day-image-scrim" aria-hidden="true"></div>
     </div>
 
+    <aside v-if="day.rainPlan" class="rain-plan">
+      <div class="rain-plan-heading">
+        <div><span>WEATHER SWITCH</span><h3>{{ day.rainPlan.title }}</h3></div>
+        <a :href="day.rainPlan.url" target="_blank" rel="noopener noreferrer">官方建議</a>
+      </div>
+      <p><strong>啟用條件：</strong>{{ day.rainPlan.trigger }}</p>
+      <ol>
+        <li v-for="step in day.rainPlan.steps" :key="step">{{ step }}</li>
+      </ol>
+    </aside>
+
     <div class="journey-list">
       <article
         v-for="(item, index) in day.items"
@@ -44,10 +55,25 @@ defineProps({ day: { type: Object, required: true } })
           <div class="journey-meta">
             <time class="journey-time">{{ item.time }}</time>
             <span class="journey-stop">STOP {{ String(index + 1).padStart(2, '0') }}</span>
+            <span v-if="item.statusLabel" class="journey-status" :class="`status-${item.status}`">{{ item.statusLabel }}</span>
           </div>
 
           <h3>{{ item.title }}</h3>
           <p v-if="item.desc">{{ item.desc }}</p>
+          <div v-if="item.choices" class="choice-list" aria-label="午餐候選">
+            <a
+              v-for="choice in item.choices"
+              :key="choice.label"
+              class="choice-row"
+              :href="choice.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>{{ choice.label }}</span>
+              <span class="choice-copy"><strong>{{ choice.title }}</strong><small>{{ choice.desc }}</small></span>
+              <b aria-hidden="true">MAP</b>
+            </a>
+          </div>
           <TransportCard v-if="item.transport" :transport="item.transport" />
           <ActionButtons :actions="item.actions || []" />
         </div>
@@ -77,6 +103,88 @@ defineProps({ day: { type: Object, required: true } })
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(7, 19, 37, 0) 68%, rgba(7, 19, 37, .16));
+}
+
+.rain-plan {
+  margin: 10px 12px 5px;
+  padding: 14px;
+  border: 1px solid #bfe2d5;
+  border-radius: 16px;
+  background: #eff9f5;
+}
+
+.rain-plan-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rain-plan-heading span {
+  display: block;
+  color: #16835b;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.rain-plan-heading h3 {
+  margin: 3px 0 0;
+  font-size: 16px;
+}
+
+.rain-plan-heading a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #a9d7c7;
+  border-radius: 10px;
+  background: #fff;
+  color: #116b4b;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.rain-plan > p {
+  margin: 10px 0 0;
+  color: #3f6c5d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rain-plan ol {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rain-step;
+}
+
+.rain-plan li {
+  counter-increment: rain-step;
+  position: relative;
+  padding-left: 24px;
+  color: #315a4d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rain-plan li::before {
+  content: counter(rain-step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: #d5eee5;
+  color: #116b4b;
+  font-size: 8px;
+  font-weight: 850;
 }
 
 /*
@@ -171,6 +279,21 @@ defineProps({ day: { type: Object, required: true } })
   letter-spacing: .1em;
 }
 
+.journey-status {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.status-decision { border-color: #f0d39b; background: #fff7e6; color: #966000; }
+.status-optional { border-color: #cedff5; background: #f1f6fc; color: #476987; }
+.status-choice { border-color: #c3dfd5; background: #eff8f4; color: #167253; }
+
 .journey-content h3 {
   margin: 0;
   font-size: 15px;
@@ -183,6 +306,58 @@ defineProps({ day: { type: Object, required: true } })
   color: #68686e;
   font-size: 12px;
   line-height: 1.58;
+}
+
+.choice-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.choice-row {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid #e1e8ef;
+  border-radius: 11px;
+  background: #fafbfc;
+}
+
+.choice-row > span:first-child {
+  color: #167253;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.choice-copy {
+  min-width: 0;
+}
+
+.choice-copy strong,
+.choice-copy small {
+  display: block;
+}
+
+.choice-copy strong {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.choice-copy small {
+  margin-top: 2px;
+  color: #70757b;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.choice-row > b {
+  color: #8a929c;
+  font-size: 7px;
+  letter-spacing: .08em;
 }
 
 :deep(.transport-card) {
@@ -208,7 +383,7 @@ defineProps({ day: { type: Object, required: true } })
 }
 
 :deep(.action) {
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 11px;
   border-radius: 11px;
   touch-action: manipulation;
@@ -277,7 +452,7 @@ defineProps({ day: { type: Object, required: true } })
   }
 
   :deep(.action) {
-    min-height: 40px;
+    min-height: 44px;
     flex: 1 1 auto;
   }
 

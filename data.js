@@ -1,4 +1,14 @@
-window.TRIP_DATA={
+const TRIP_DATA={
+priorityActions:[
+{key:'usj',deadline:'最優先',title:'USJ 電子票加入官方 App',desc:'4 人票券都要能在各自手機或同行者手機離線叫出。',level:'P0'},
+{key:'express',deadline:'售完前',title:'決定 9/24 Express Pass',desc:'4 人同方案、每人不超過 ¥20,000 就買；否則立刻切替代組合。',level:'P0'},
+{key:'roomtype',deadline:'入住前',title:'確認兩間房的房型與床型',desc:'逐筆核對 DOUBLE / TWIN、入住姓名與 4 人配置，不只看總房數。',level:'P0'},
+{key:'meat',deadline:'9/22 19:30',title:'松阪牛 M 訂位完成',desc:'確認分店、日期、時間與 4 人席位。',level:'P1'},
+{key:'weather',deadline:'9/20 晚上',title:'完成最終天氣檢查',desc:'京都若大雨就啟用室內版；USJ 確認雨具與替換襪。',level:'P1'}],
+decisions:[
+{when:'D1 · 15:15',badge:'CUT-OFF',title:'巴士是否還等 15:32',rule:'15:15 前已領到行李並往 T2 巴士站移動才搭 15:32；否則直接切 16:32 到上本町。',tone:'amber',action:'開官方時刻表',url:'https://www.kate.co.jp/timetable/detail/UH/dep'},
+{when:'D2 · 08:15',badge:'OPTIONAL',title:'大阪城不是必去',rule:'睡眠不足、下雨或購物優先就跳過；10:00 直接往日本橋，不補行程。',tone:'blue'},
+{when:'D3 · 出發前',badge:'RAIN B',title:'京都大雨改走室內線',rule:'縮短伏見稻荷，改三十三間堂、錦市場、寺町與新京極商店街。',tone:'green',action:'京都官方雨天建議',url:'https://global.kyoto.travel/en/faq/detail.php?faq_id=1019'}],
 quickLinks:[
 {title:'eSIM',desc:'KKday 日本 SoftBank eSIM',url:'https://www.kkday.com/zh-tw/product/149025-japan-network-card-softbank-high-speed-500mb-1gb-2gb-3gb-esim',label:'KKday eSIM'},
 {title:'Visit Japan Web',desc:'入境審查＋海關資料，QR Code 建議截圖',url:'https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/',label:'官方繁中頁'},
@@ -9,13 +19,13 @@ costs:[
 days:[
 {id:'d1',no:'DAY 1',date:'9/21（一）',title:'抵達大阪・心齋橋',image:'https://media.triple.guide/triple-cms/c_limit%2Cf_auto%2Ch_1024%2Cw_1024/3c8d25e6-79f8-40be-be24-e589261ad794',alt:'大阪道頓堀夜景',items:[
 {time:'13:20',title:'KIX T2 抵達',desc:'Peach 在第 2 航廈。Visit Japan Web 先做好，領完行李直接進城。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport+Terminal+2','map']]},
-{time:'15:32',title:'機場巴士 → 心齋橋',desc:'有 4 個大行李，首選直達巴士。',transport:{head:'🚌 KIX T2 → 心齋橋 Hotel Nikko',fare:'¥1,800 / 人',steps:['到第 2 航廈巴士乘車處，先買「近鉄上本町・心斎橋」車票。','15:32 T2 發車 → 16:59 Hotel Nikko Osaka 下車。','下車後步行約 10–15 分鐘到捷絲旅；不想拖箱就 4 人叫短程計程車。','錯過 15:32：改搭 16:32 T2 → 17:46 上本町，再分攤計程車到飯店。']},actions:[['官方時刻表','https://www.kate.co.jp/en/timetable/detail/UH'],['↗ 導航到飯店','https://www.google.com/maps/dir/?api=1&origin=Kansai+International+Airport+Terminal+2&destination=Just+Sleep+Osaka+Shinsaibashi','route']]},
+{time:'15:15 決定',title:'趕得上就搭 15:32 直達巴士',desc:'15:15 前已領到行李並往 T2 巴士站移動才保留直達；否則不要追車。',status:'decision',statusLabel:'切換點',transport:{head:'KIX T2 → 心齋橋 Hotel Nikko',fare:'¥1,800 / 人',steps:['到第 2 航廈巴士乘車處，先買「近鉄上本町・心斎橋」車票。','15:32 T2 發車 → 16:59 Hotel Nikko Osaka 下車。','下車後步行約 10–15 分鐘到捷絲旅；不想拖箱就 4 人叫短程計程車。','未達 15:15 條件：改搭 16:32 T2 → 17:46 上本町，再分攤計程車到飯店。']},actions:[['官方時刻表','https://www.kate.co.jp/timetable/detail/UH/dep'],['導航到飯店','https://www.google.com/maps/dir/?api=1&origin=Kansai+International+Airport+Terminal+2&destination=Just+Sleep+Osaka+Shinsaibashi','route']]},
 {time:'17:20',title:'捷絲旅 Check-in',desc:'前三晚固定住 Just Sleep Osaka Shinsaibashi。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Just+Sleep+Osaka+Shinsaibashi','map']]},
 {time:'18:00–20:00',title:'心齋橋 PARCO＋心齋橋筋',desc:'先處理服飾、潮流、簡單購物。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Shinsaibashi+PARCO','map']]},
 {time:'20:00–21:45',title:'道頓堀＋拉麵',desc:'第一晚吃簡單；大量藥妝與伴手禮留 D2。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Dotonbori+Osaka','map']]}]},
 {id:'d2',no:'DAY 2',date:'9/22（二）',title:'大阪購物主日＋夜景＋松阪牛',image:'https://www.edreams.ph/images/destinations/600x600/OSA.jpg',alt:'大阪城',items:[
 {time:'08:00',title:'買 Osaka Metro 一日券',desc:'今天 Metro 搭乘多，假日版 Enjoy Eco Card 較適合。',transport:{head:'🎫 Enjoy Eco Card',fare:'¥620 / 人',steps:['從飯店步行約 7–10 分鐘到心齋橋站。','券賣機購買「1日乗車券 エンジョイエコカード（土日祝）」。','今天 Metro 段用一日券，不扣 Suica。']}},
-{time:'08:15–09:45',title:'大阪城｜只抓精華',desc:'外觀、公園、拍照；不為天守排太久。',transport:{head:'🚇 心齋橋 N15 → 森ノ宮 N20',fare:'一日券含',steps:['搭長堀鶴見緑地線，往門真南方向。','不用轉車，在森ノ宮下車，依「大阪城公園」指標走。']},actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Osaka+Castle','map'],['↗ 導航','https://www.google.com/maps/dir/?api=1&origin=Shinsaibashi+Station&destination=Osaka+Castle&travelmode=transit','route']]},
+{time:'08:15–09:45',title:'大阪城｜可選，只抓精華',desc:'睡眠不足、下雨或購物優先就跳過；不為天守排隊，也不另找時間補。',status:'optional',statusLabel:'可跳過',transport:{head:'心齋橋 N15 → 森ノ宮 N20',fare:'一日券含',steps:['搭長堀鶴見緑地線，往門真南方向。','不用轉車，在森ノ宮下車，依「大阪城公園」指標走。','跳過時：10:00 左右直接從心齋橋前往日本橋。']},actions:[['大阪城地圖','https://www.google.com/maps/search/?api=1&query=Osaka+Castle','map'],['交通導航','https://www.google.com/maps/dir/?api=1&origin=Shinsaibashi+Station&destination=Osaka+Castle&travelmode=transit','route']]},
 {time:'10:30–13:30',title:'日本橋 Den Den Town',desc:'動漫、模型、遊戲主場。Surugaya → Joshin Super Kids Land → Animate。',transport:{head:'🚇 森ノ宮 → 日本橋',fare:'一日券含',steps:['森ノ宮搭長堀鶴見緑地線往大正。','長堀橋轉堺筋線，往天下茶屋。','日本橋 K17 下車後一路往南逛 Den Den Town。']},actions:[['📍 Surugaya','https://www.google.com/maps/search/?api=1&query=Surugaya+Nipponbashi+Osaka','map'],['📍 Joshin','https://www.google.com/maps/search/?api=1&query=Joshin+Super+Kids+Land+Osaka','map'],['📍 Animate','https://www.google.com/maps/search/?api=1&query=Animate+Osaka+Nipponbashi','map']]},
 {time:'13:30–14:15',title:'拉麵午餐',desc:'選日本橋／難波當下排隊短的店，不為網紅店浪費 60–90 分鐘。'},
 {time:'14:20–15:40',title:'Bic Camera 難波＋相機店',desc:'3C、相機、配件集中處理；想看二手鏡頭順便看 Naniwa Camera。',actions:[['📍 Bic Camera','https://www.google.com/maps/search/?api=1&query=Bic+Camera+Namba','map'],['📍 Naniwa Camera','https://www.google.com/maps/search/?api=1&query=Naniwa+Camera+Namba+Marui','map']]},
@@ -23,12 +33,12 @@ days:[
 {time:'17:45–19:00',title:'HARUKAS 300',desc:'這趟只留一個正式高空夜景。',transport:{head:'🚇 心齋橋 M19 → 天王寺 M23',fare:'一日券含',steps:['搭御堂筋線往なかもず／中百舌鳥方向。','不用轉車，在天王寺下車，跟「阿倍野ハルカス」指標。']},actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Harukas+300+Osaka','map']]},
 {time:'19:30–21:30',title:'松阪牛焼肉 M 法善寺 Hanare',desc:'4 人；Special 約 ¥11,880 / 人、Premium 約 ¥14,080 / 人。',transport:{head:'🚇 天王寺 M23 → なんば M20',fare:'一日券含',steps:['御堂筋線往箕面萱野／新大阪方向。','なんば下車，Google Maps 步行約 5–10 分鐘到法善寺。']},actions:[['官方網站','https://matsusaka-projects.com/english/shop/houzenji-hanare'],['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Matsusakagyu+Yakiniku+M+Houzenji+Hanare+Osaka','map']]},
 {time:'21:30–22:00',title:'藥妝 / Donki 補貨',desc:'重物集中今晚買，回飯店直接整理。',actions:[['📍 Donki 道頓堀','https://www.google.com/maps/search/?api=1&query=Don+Quijote+Dotonbori+Osaka','map']]}]},
-{id:'d3',no:'DAY 3',date:'9/23（三）',title:'京都經典一日',image:'https://cs13.pikabu.ru/post_img/big/2023/11/09/7/1699525999187637469.jpg',alt:'伏見稻荷千本鳥居',items:[
+{id:'d3',no:'DAY 3',date:'9/23（三）',title:'京都經典一日',image:'https://cs13.pikabu.ru/post_img/big/2023/11/09/7/1699525999187637469.jpg',alt:'伏見稻荷千本鳥居',rainPlan:{title:'大雨 Plan B',trigger:'前一晚預報持續降雨，或當天體感已不適合長距離步行',steps:['伏見稻荷只走入口與前段鳥居，最晚 08:30 離開。','取消清水寺長上坡，改三十三間堂等室內景點。','下午集中錦市場、寺町與新京極商店街；不硬追戶外點。'],url:'https://global.kyoto.travel/en/faq/detail.php?faq_id=1019'},items:[
 {time:'06:20',title:'心齋橋 → 伏見稻荷',desc:'秋分日，京都一定早出。',transport:{head:'🚇＋🚆 心齋橋 → 伏見稻荷',fare:'約 ¥680',steps:['心齋橋 M19 搭御堂筋線往箕面萱野／新大阪方向 → 淀屋橋 M17。','步行轉京阪淀屋橋 KH01。','往出町柳方向；若搭特急，在丹波橋轉準急／普通。','伏見稲荷 KH34 下車；全程直接刷 Suica。']},actions:[['↗ 直接導航','https://www.google.com/maps/dir/?api=1&origin=Just+Sleep+Osaka+Shinsaibashi&destination=Fushimi+Inari+Taisha&travelmode=transit','route']]},
 {time:'07:35–09:10',title:'伏見稻荷',desc:'千本鳥居走到中段就回，不攻完整稻荷山。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Fushimi+Inari+Taisha','map']]},
 {time:'09:20–10:15',title:'伏見稻荷 → 清水寺',desc:'到清水五條後，上坡若太熱／下雨可 4 人分攤計程車。',transport:{head:'🚆 伏見稻荷 KH34 → 清水五條 KH38',fare:'約 ¥240',steps:['搭京阪本線往出町柳方向。','普通／準急都可以，清水五條下車。','步行上坡約 20–25 分鐘到清水寺。']},actions:[['↗ 直接導航','https://www.google.com/maps/dir/?api=1&origin=Fushimi+Inari+Taisha&destination=Kiyomizu-dera&travelmode=transit','route']]},
 {time:'10:20–12:30',title:'清水寺 → 三年坂 → 二年坂',desc:'主景點上午完成，避開午後最大人潮。',actions:[['📍 清水寺','https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera+Kyoto','map']]},
-{time:'12:30–15:00',title:'午餐＋祇園＋八坂神社＋花見小路',desc:'午餐不追超長排隊名店；一路往祇園走。',actions:[['📍 八坂神社','https://www.google.com/maps/search/?api=1&query=Yasaka+Shrine+Kyoto','map'],['📍 花見小路','https://www.google.com/maps/search/?api=1&query=Hanamikoji+Street+Kyoto','map']]},
+{time:'12:30–15:00',title:'午餐 A / B / C＋祇園',desc:'12:20 看排隊長度，選第一個能在 20 分鐘內入座的方案；不為名店打亂下午。',status:'choice',statusLabel:'現場三選一',choices:[{label:'A · 最近',title:'祇園 京めん',desc:'京風烏龍／蕎麥；祇園會館 1F，動線最短。',url:'https://www.google.com/maps/search/?api=1&query=Gion+Kyomen+Kyoto'},{label:'B · 傳統',title:'祇園權兵衛',desc:'蕎麥、烏龍與丼飯；適合想坐下吃完整午餐。',url:'https://www.google.com/maps/search/?api=1&query=Gion+Gonbe+Kyoto'},{label:'C · 雨天',title:'四条河原町餐廳層',desc:'直接往百貨公司室內用餐，再接錦市場與商店街。',url:'https://www.google.com/maps/search/?api=1&query=Kyoto+Kawaramachi+department+store+restaurants'}],actions:[['八坂神社地圖','https://www.google.com/maps/search/?api=1&query=Yasaka+Shrine+Kyoto','map'],['花見小路地圖','https://www.google.com/maps/search/?api=1&query=Hanamikoji+Street+Kyoto','map']]},
 {time:'15:15–17:30',title:'錦市場＋河原町',desc:'伴手禮、零食、自由購物。',actions:[['📍 錦市場','https://www.google.com/maps/search/?api=1&query=Nishiki+Market+Kyoto','map'],['📍 河原町','https://www.google.com/maps/search/?api=1&query=Kawaramachi+Kyoto','map']]},
 {time:'17:45–19:15',title:'京都 → 心齋橋',desc:'晚上簡單居酒屋，21:30 前回飯店。',transport:{head:'🚆＋🚇 祇園四条 → 心齋橋',fare:'約 ¥680',steps:['祇園四条 KH39 搭京阪特急淀屋橋行。','淀屋橋轉御堂筋線往なかもず方向。','心齋橋 M19 下車。','今天總交通約 ¥1,600 / 人。']},actions:[['↗ 回飯店導航','https://www.google.com/maps/dir/?api=1&origin=Gion-Shijo+Station&destination=Just+Sleep+Osaka+Shinsaibashi&travelmode=transit','route']]}]},
 {id:'d4',no:'DAY 4',date:'9/24（四）',title:'USJ＋換住環球塔',image:'https://rimage.gnst.jp/livejapan.com/public/article/detail/a/20/00/a2000380/img/basic/a2000380_thumbnail.jpg',alt:'日本環球影城',items:[
@@ -56,7 +66,11 @@ checklist:[
 ['手機 / 交通 / 付款',[
 ['esim','KKday eSIM 安裝完成','到日本才啟用旅遊 eSIM 行動數據。'],['suica','Suica 可以使用','Apple Wallet / 實體卡皆可。'],['cash','日幣現金＋信用卡','不要只帶單一付款方式。'],['apps','Google Maps / Translate / USJ App','先下載並登入。']]],
 ['USJ / 預約',[
-['usj','USJ 電子票拿到','收到後加入 USJ 官方 App。'],['express','檢查 9/24 Express Pass','上限 ¥20,000 / 人。'],['meat','9/22 19:30 松阪牛 M 訂位','4 人。']]],
+['usj','USJ 電子票拿到','收到後加入 USJ 官方 App，4 人都能離線叫出。'],['express','檢查 9/24 Express Pass','4 人同方案；上限 ¥20,000 / 人。'],['meat','9/22 19:30 松阪牛 M 訂位','確認分店與 4 人席位。'],['roomtype','確認兩間房的房型與床型','逐筆核對 DOUBLE / TWIN、入住姓名與 4 人配置。']]],
+['現場切換規則',[
+['d1cutoff','D1 15:15 巴士規則全員知道','未達條件就搭 16:32 到上本町，不追 15:32。'],['weather','9/20 晚上做最終天氣檢查','京都大雨走室內版；USJ 備雨具與替換襪。'],['d5bus','D5 10:20 到 USJ 巴士站','目標 10:50 發車；備援 11:10。']]],
 ['行李 / 電子用品',[
 ['charger','手機充電器＋充電線','日本 100V、A 型兩扁腳；100–240V 充電器可直接使用。'],['powerbank','行動電源放隨身行李','不可托運；出發前再核對 Peach 最新規定。'],['scale','小型行李秤','回程藥妝、3C、伴手禮容易超重。'],['umbrella','折疊傘 / 輕便雨具','京都與 USJ 都大量戶外步行。'],['shoes','好走的鞋','京都＋USJ 連兩天會很有感。'],['meds','個人常用藥','依個人需求攜帶，處方藥保留原包裝。']]]]
 };
+
+export default TRIP_DATA

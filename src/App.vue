@@ -1,18 +1,28 @@
 <script setup>
+import { layout, prepare, setLocale } from '@chenglou/pretext'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import tripData from '../data.js'
 import DaySection from './components/DaySection.vue'
 
-const trip = window.TRIP_DATA || { quickLinks: [], costs: [], days: [], travelInfo: [], checklist: [] }
+const trip = tripData || { quickLinks: [], costs: [], days: [], travelInfo: [], checklist: [] }
 const navLabels = ['抵達', '購物', '京都', 'USJ', '回台']
 const quickMarks = ['SIM', 'VJW', '役', 'USJ']
 const activeDay = ref(trip.days[0]?.id || '')
 const isOnline = ref(navigator.onLine)
 const checks = reactive({})
 let observer
+let pretextObserver
+let pretextFrame
+const preparedText = new Map()
 
 const checklistItems = computed(() => trip.checklist.flatMap(([, items]) => items))
 const completedCount = computed(() => checklistItems.value.filter(([key]) => checks[key]).length)
 const progress = computed(() => checklistItems.value.length ? Math.round((completedCount.value / checklistItems.value.length) * 100) : 0)
+const criticalActions = computed(() => (trip.priorityActions || []).map(item => ({
+  ...item,
+  complete: !!checks[item.key]
+})))
+const criticalRemaining = computed(() => criticalActions.value.filter(item => !item.complete).length)
 
 const countdownText = computed(() => {
   const start = new Date('2026-09-21T00:00:00+09:00')
@@ -44,7 +54,35 @@ const scrollToDay = (id) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+const scrollToChecklist = () => {
+  document.getElementById('trip-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 const updateNetwork = () => { isOnline.value = navigator.onLine }
+
+const relayoutText = () => {
+  cancelAnimationFrame(pretextFrame)
+  pretextFrame = requestAnimationFrame(() => {
+    preparedText.forEach((handle, element) => {
+      const style = getComputedStyle(element)
+      const lineHeight = Number.parseFloat(style.lineHeight)
+      if (!element.clientWidth || !Number.isFinite(lineHeight)) return
+      const result = layout(handle, element.clientWidth, lineHeight)
+      element.style.height = `${Math.ceil(result.height)}px`
+    })
+  })
+}
+
+const prepareTextLayout = async () => {
+  await document.fonts.ready
+  setLocale('zh-Hant')
+  document.querySelectorAll('[data-pretext]').forEach((element) => {
+    preparedText.set(element, prepare(element.textContent.trim(), getComputedStyle(element).font))
+  })
+  pretextObserver = new ResizeObserver(relayoutText)
+  document.querySelectorAll('[data-pretext]').forEach(element => pretextObserver.observe(element))
+  relayoutText()
+}
 
 onMounted(async () => {
   loadChecks()
@@ -61,6 +99,8 @@ onMounted(async () => {
 
   document.querySelectorAll('.day-section').forEach(el => observer.observe(el))
 
+  await prepareTextLayout()
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {})
   }
@@ -68,6 +108,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+  pretextObserver?.disconnect()
+  cancelAnimationFrame(pretextFrame)
   window.removeEventListener('online', updateNetwork)
   window.removeEventListener('offline', updateNetwork)
 })
@@ -76,9 +118,6 @@ onBeforeUnmount(() => {
 <template>
   <main class="page-shell">
     <section class="hero-card">
-      <div class="hero-glow hero-glow-a"></div>
-      <div class="hero-glow hero-glow-b"></div>
-
       <div class="hero-topline">
         <span class="trip-badge">OSAKA · 2026</span>
         <span class="network-pill" :class="{ offline: !isOnline }"><i></i>{{ isOnline ? '線上' : '離線可看' }}</span>
@@ -100,8 +139,8 @@ onBeforeUnmount(() => {
           <strong>{{ countdownText }}</strong>
         </div>
         <div class="status-card">
-          <span>Checklist</span>
-          <strong>{{ progress }}%</strong>
+          <span>關鍵任務</span>
+          <strong>{{ criticalRemaining }} 未完成</strong>
         </div>
         <div class="status-card">
           <span>行程天數</span>
@@ -116,6 +155,42 @@ onBeforeUnmount(() => {
     <section class="notice-card">
       <div class="notice-icon">!</div>
       <div><strong>9/21–9/23 日本連續假期</strong><span>9/21 敬老日、9/22 國民休日、9/23 秋分日；京都 9/23 一定早出。</span></div>
+    </section>
+
+    <section class="content-section command-section" aria-labelledby="command-title">
+      <div class="section-title-row command-title-row">
+        <div><p class="section-kicker">TRIP CONTROL</p><h2 id="command-title">出發前最後防線</h2><p class="section-caption" data-pretext>先清掉會讓四個人卡在現場的項目，再處理一般行李。</p></div>
+        <button class="command-count" type="button" @click="scrollToChecklist">
+          <strong>{{ criticalRemaining }}</strong><span>未完成</span>
+        </button>
+      </div>
+
+      <div class="critical-list">
+        <label
+          v-for="item in criticalActions"
+          :key="item.key"
+          class="critical-row"
+          :class="{ complete: item.complete }"
+        >
+          <input type="checkbox" :checked="item.complete" @change="updateCheck(item.key, $event.target.checked)" />
+          <span class="critical-indicator" aria-hidden="true"></span>
+          <span class="critical-copy">
+            <small>{{ item.deadline }}</small>
+            <strong>{{ item.title }}</strong>
+            <span data-pretext>{{ item.desc }}</span>
+          </span>
+          <b>{{ item.complete ? 'DONE' : item.level }}</b>
+        </label>
+      </div>
+
+      <div class="decision-grid" aria-label="現場切換規則">
+        <article v-for="decision in trip.decisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
+          <div class="decision-topline"><span>{{ decision.when }}</span><b>{{ decision.badge }}</b></div>
+          <h3>{{ decision.title }}</h3>
+          <p data-pretext>{{ decision.rule }}</p>
+          <a v-if="decision.url" :href="decision.url" target="_blank" rel="noopener noreferrer">{{ decision.action }}</a>
+        </article>
+      </div>
     </section>
 
     <section class="content-section">
@@ -179,7 +254,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section class="content-section checklist-section">
+    <section id="trip-checklist" class="content-section checklist-section section-anchor">
       <div class="section-title-row checklist-title-row">
         <div><p class="section-kicker">CHECKLIST</p><h2>出發前確認</h2><p class="section-caption">勾選狀態會存在這支手機裡。</p></div>
         <button class="text-button" type="button" @click="resetChecklist">重設</button>

@@ -6,6 +6,8 @@ const classFor = (type) => {
   if (type === 'map') return 'action action-map'
   return 'action'
 }
+
+const cleanLabel = (label) => label.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D↗＋\s]+/u, '')
 </script>
 
 <template>
@@ -17,6 +19,6 @@ const classFor = (type) => {
       :href="url"
       target="_blank"
       rel="noopener noreferrer"
-    >{{ label }}</a>
+    >{{ cleanLabel(label) }}</a>
   </div>
 </template>

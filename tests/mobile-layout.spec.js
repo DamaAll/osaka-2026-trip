@@ -23,6 +23,10 @@ for (const width of widths) {
     await expect(page.locator('.day-nav-button')).toHaveCount(5)
     await expect(page.locator('.journey-list')).toHaveCount(5)
     await expect(page.locator('.timeline-side')).toHaveCount(0)
+    await expect(page.locator('.critical-row')).toHaveCount(5)
+    await expect(page.locator('.decision-card')).toHaveCount(3)
+    await expect(page.locator('.rain-plan')).toHaveCount(1)
+    await expect(page.locator('.choice-row')).toHaveCount(3)
 
     const dimensions = await page.evaluate(() => ({
       innerWidth: window.innerWidth,
@@ -32,6 +36,11 @@ for (const width of widths) {
 
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.innerWidth)
     expect(dimensions.bodyScrollWidth).toBeLessThanOrEqual(dimensions.innerWidth)
+
+    const clippedPretext = await page.locator('[data-pretext]').evaluateAll(elements => (
+      elements.filter(element => element.scrollHeight > element.clientHeight + 1).length
+    ))
+    expect(clippedPretext).toBe(0)
 
     const firstDay = page.locator('.day-section').first()
     const firstRail = firstDay.locator('.journey-rail').first()
@@ -55,6 +64,21 @@ for (const width of widths) {
     expect(navBox?.width).toBeLessThanOrEqual(width)
   })
 }
+
+test('decision rules and touch targets are usable on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  await expect(page.getByRole('heading', { name: '出發前最後防線' })).toBeVisible()
+  await expect(page.getByText('大阪城不是必去')).toBeVisible()
+  await expect(page.getByText('京都大雨改走室內線')).toBeVisible()
+  await expect(page.getByText('午餐 A / B / C＋祇園')).toBeVisible()
+
+  const undersizedTargets = await page.locator('.decision-card a, .rain-plan a, .action, .text-button').evaluateAll(elements => (
+    elements.filter(element => element.getBoundingClientRect().height < 44).map(element => element.textContent.trim())
+  ))
+  expect(undersizedTargets).toEqual([])
+})
 
 test('bottom navigation scrolls to the selected day', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
