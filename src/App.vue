@@ -7,6 +7,7 @@ import DaySection from './components/DaySection.vue'
 const trip = tripData || { quickLinks: [], costs: [], days: [], travelInfo: [], checklist: [] }
 const navLabels = ['抵達', '購物', '京都', 'USJ', '回台']
 const quickMarks = ['SIM', 'VJW', '役', 'USJ']
+const activeView = ref('itinerary')
 const activeDay = ref(trip.days[0]?.id || '')
 const isOnline = ref(navigator.onLine)
 const checks = reactive({})
@@ -58,6 +59,18 @@ const scrollToChecklist = () => {
   document.getElementById('trip-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+const switchView = async (view) => {
+  if (activeView.value === view) return
+  activeView.value = view
+  await nextTick()
+  observer?.disconnect()
+  if (view === 'itinerary') {
+    document.querySelectorAll('.day-section').forEach(element => observer?.observe(element))
+  }
+  await prepareTextLayout()
+  document.getElementById('view-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 const updateNetwork = () => { isOnline.value = navigator.onLine }
 
 const relayoutText = () => {
@@ -76,6 +89,8 @@ const relayoutText = () => {
 const prepareTextLayout = async () => {
   await document.fonts.ready
   setLocale('zh-Hant')
+  pretextObserver?.disconnect()
+  preparedText.clear()
   document.querySelectorAll('[data-pretext]').forEach((element) => {
     preparedText.set(element, prepare(element.textContent.trim(), getComputedStyle(element).font))
   })
@@ -152,128 +167,126 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section class="notice-card">
-      <div class="notice-icon">!</div>
-      <div><strong>9/21–9/23 日本連續假期</strong><span>9/21 敬老日、9/22 國民休日、9/23 秋分日；京都 9/23 一定早出。</span></div>
-    </section>
+    <nav class="view-tabs" role="tablist" aria-label="主要內容">
+      <button id="itinerary-tab" type="button" role="tab" aria-controls="view-content" :class="{ active: activeView === 'itinerary' }" :aria-selected="activeView === 'itinerary'" @click="switchView('itinerary')">
+        <span>01</span><strong>行程</strong><small>時間軸與備案</small>
+      </button>
+      <button id="prep-tab" type="button" role="tab" aria-controls="view-content" :class="{ active: activeView === 'prep' }" :aria-selected="activeView === 'prep'" @click="switchView('prep')">
+        <span>02</span><strong>準備</strong><small>Checklist {{ progress }}%</small>
+      </button>
+    </nav>
 
-    <section class="content-section command-section" aria-labelledby="command-title">
-      <div class="section-title-row command-title-row">
-        <div><p class="section-kicker">TRIP CONTROL</p><h2 id="command-title">出發前最後防線</h2><p class="section-caption" data-pretext>先清掉會讓四個人卡在現場的項目，再處理一般行李。</p></div>
-        <button class="command-count" type="button" @click="scrollToChecklist">
-          <strong>{{ criticalRemaining }}</strong><span>未完成</span>
-        </button>
-      </div>
-
-      <div class="critical-list">
-        <label
-          v-for="item in criticalActions"
-          :key="item.key"
-          class="critical-row"
-          :class="{ complete: item.complete }"
-        >
-          <input type="checkbox" :checked="item.complete" @change="updateCheck(item.key, $event.target.checked)" />
-          <span class="critical-indicator" aria-hidden="true"></span>
-          <span class="critical-copy">
-            <small>{{ item.deadline }}</small>
-            <strong>{{ item.title }}</strong>
-            <span data-pretext>{{ item.desc }}</span>
-          </span>
-          <b>{{ item.complete ? 'DONE' : item.level }}</b>
-        </label>
-      </div>
-
-      <div class="decision-grid" aria-label="現場切換規則">
-        <article v-for="decision in trip.decisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
-          <div class="decision-topline"><span>{{ decision.when }}</span><b>{{ decision.badge }}</b></div>
-          <h3>{{ decision.title }}</h3>
-          <p data-pretext>{{ decision.rule }}</p>
-          <a v-if="decision.url" :href="decision.url" target="_blank" rel="noopener noreferrer">{{ decision.action }}</a>
-        </article>
-      </div>
-    </section>
-
-    <section class="content-section">
-      <div class="section-title-row">
-        <div><p class="section-kicker">PRE-TRIP</p><h2>出發前快速連結</h2><p class="section-caption">常用入口集中在這裡，出發前逐一確認。</p></div>
-      </div>
-      <div class="quick-grid">
-        <a v-for="(item, index) in trip.quickLinks" :key="item.title" class="quick-card" :href="item.url" target="_blank" rel="noopener noreferrer">
-          <div class="quick-card-top"><span class="quick-mark">{{ quickMarks[index] || String(index + 1).padStart(2, '0') }}</span><span class="quick-arrow">↗</span></div>
-          <div><strong>{{ item.title }}</strong><p>{{ item.desc }}</p></div>
-        </a>
-      </div>
-    </section>
-
-    <section class="content-section">
-      <div class="section-title-row">
-        <div><p class="section-kicker">BUDGET</p><h2>交通費速覽</h2><p class="section-caption">先抓固定交通費，計程車與臨時移動另外算。</p></div>
-      </div>
-      <div class="cost-grid">
-        <div v-for="([cost, label], index) in trip.costs" :key="index" class="cost-card" :class="{ total: index === trip.costs.length - 1 }">
-          <span class="cost-sequence">{{ index === trip.costs.length - 1 ? 'TOTAL' : `0${index + 1}` }}</span>
-          <strong>{{ cost }}</strong><span class="cost-label">{{ label }}</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="content-section">
-      <div class="section-title-row">
-        <div><p class="section-kicker">USJ</p><h2>Express Pass 決策</h2><p class="section-caption">價格合適就直接買，不把 USJ 的時間浪費在排隊。</p></div>
-      </div>
-      <div class="express-card">
-        <div class="express-visual">
-          <span class="eyebrow-badge">RECOMMENDED</span>
-          <strong>EXPRESS<br>PASS 5</strong>
-          <small>09 / 24</small>
-        </div>
-        <div class="express-copy">
-          <p class="express-price">¥16,800 <small>起 / 人</small></p>
-          <p>優先找含 Donkey Kong、Mario Kart、Flying Dinosaur、Harry Potter 的組合。</p>
-          <div class="soft-note"><b>購買規則：</b>KKday 選 9/24，4 人都有同方案且每人 ≤ ¥20,000 就買；超過就改看其他 Pass 4 / Halloween 組合。</div>
-          <a class="primary-cta" href="https://www.kkday.com/zh-tw/product/18618-universal-studios-japan-express-pass-osaka" target="_blank" rel="noopener noreferrer"><span>查看 KKday Express Pass</span><b>↗</b></a>
-        </div>
-      </div>
-    </section>
-
-    <section class="content-section days-section">
-      <div class="section-title-row">
-        <div><p class="section-kicker">ITINERARY</p><h2>D1–D5 行程</h2><p class="section-caption">照時間往下走；交通細節與導航都直接放在當天。</p></div>
-      </div>
-      <DaySection v-for="day in trip.days" :key="day.id" :day="day" />
-    </section>
-
-    <section class="content-section">
-      <div class="section-title-row">
-        <div><p class="section-kicker">ESSENTIALS</p><h2>eSIM / 手機 / 交通</h2><p class="section-caption">到日本後最常用的四件事。</p></div>
-      </div>
-      <div class="info-grid">
-        <article v-for="(item, index) in trip.travelInfo" :key="item.title" class="info-card">
-          <span class="info-index">0{{ index + 1 }}</span><div><h3>{{ item.title }}</h3><p>{{ item.desc }}</p></div>
-        </article>
-      </div>
-    </section>
-
-    <section id="trip-checklist" class="content-section checklist-section section-anchor">
-      <div class="section-title-row checklist-title-row">
-        <div><p class="section-kicker">CHECKLIST</p><h2>出發前確認</h2><p class="section-caption">勾選狀態會存在這支手機裡。</p></div>
-        <button class="text-button" type="button" @click="resetChecklist">重設</button>
-      </div>
-      <div class="checklist-summary">
-        <div class="checklist-ring" :style="{ '--progress': `${progress * 3.6}deg` }"><span>{{ progress }}%</span></div>
-        <div><strong>{{ completedCount }} / {{ checklistItems.length }}</strong><span>項目已完成</span></div>
-      </div>
-      <div class="check-groups">
-        <section v-for="([group, items]) in trip.checklist" :key="group" class="check-group">
-          <h3>{{ group }}</h3>
-          <label v-for="([key, title, desc]) in items" :key="key" class="check-row" :class="{ checked: !!checks[key] }">
-            <input type="checkbox" :checked="!!checks[key]" @change="updateCheck(key, $event.target.checked)" />
-            <span class="custom-check">✓</span>
-            <span class="check-copy"><strong>{{ title }}</strong><small>{{ desc }}</small></span>
-          </label>
+    <div id="view-content" class="view-content" role="tabpanel" :aria-labelledby="activeView === 'itinerary' ? 'itinerary-tab' : 'prep-tab'">
+      <template v-if="activeView === 'itinerary'">
+        <section class="notice-card">
+          <div class="notice-icon">!</div>
+          <div><strong>9/21–9/23 日本連續假期</strong><span>9/21 敬老日、9/22 國民休日、9/23 秋分日；京都 9/23 一定早出。</span></div>
         </section>
-      </div>
-    </section>
+
+        <section class="content-section command-section decision-section" aria-labelledby="decision-title">
+          <div class="section-title-row command-title-row">
+            <div><p class="section-kicker">LIVE RULES</p><h2 id="decision-title">現場切換規則</h2><p class="section-caption" data-pretext>時間到了就照規則切換，不在現場重新討論。</p></div>
+          </div>
+          <div class="decision-grid">
+            <article v-for="decision in trip.decisions" :key="decision.title" class="decision-card" :class="`decision-${decision.tone}`">
+              <div class="decision-topline"><span>{{ decision.when }}</span><b>{{ decision.badge }}</b></div>
+              <h3>{{ decision.title }}</h3>
+              <p data-pretext>{{ decision.rule }}</p>
+              <a v-if="decision.url" :href="decision.url" target="_blank" rel="noopener noreferrer">{{ decision.action }}</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="content-section days-section">
+          <div class="section-title-row">
+            <div><p class="section-kicker">ITINERARY</p><h2>D1–D5 行程</h2><p class="section-caption">照時間往下走；交通細節與導航都直接放在當天。</p></div>
+          </div>
+          <DaySection v-for="day in trip.days" :key="day.id" :day="day" />
+        </section>
+      </template>
+
+      <template v-else>
+        <section class="content-section command-section" aria-labelledby="command-title">
+          <div class="section-title-row command-title-row">
+            <div><p class="section-kicker">TRIP CONTROL</p><h2 id="command-title">出發前最後防線</h2><p class="section-caption" data-pretext>先清掉會讓四個人卡在現場的項目，再處理一般行李。</p></div>
+            <button class="command-count" type="button" @click="scrollToChecklist">
+              <strong>{{ criticalRemaining }}</strong><span>未完成</span>
+            </button>
+          </div>
+          <div class="critical-list">
+            <label v-for="item in criticalActions" :key="item.key" class="critical-row" :class="{ complete: item.complete }">
+              <input type="checkbox" :checked="item.complete" @change="updateCheck(item.key, $event.target.checked)" />
+              <span class="critical-indicator" aria-hidden="true"></span>
+              <span class="critical-copy"><small>{{ item.deadline }}</small><strong>{{ item.title }}</strong><span data-pretext>{{ item.desc }}</span></span>
+              <b>{{ item.complete ? 'DONE' : item.level }}</b>
+            </label>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-title-row"><div><p class="section-kicker">PRE-TRIP</p><h2>出發前快速連結</h2><p class="section-caption">常用入口集中在這裡，出發前逐一確認。</p></div></div>
+          <div class="quick-grid">
+            <a v-for="(item, index) in trip.quickLinks" :key="item.title" class="quick-card" :href="item.url" target="_blank" rel="noopener noreferrer">
+              <div class="quick-card-top"><span class="quick-mark">{{ quickMarks[index] || String(index + 1).padStart(2, '0') }}</span><span class="quick-arrow">OPEN</span></div>
+              <div><strong>{{ item.title }}</strong><p>{{ item.desc }}</p></div>
+            </a>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-title-row"><div><p class="section-kicker">USJ</p><h2>Express Pass 決策</h2><p class="section-caption">價格合適就直接買，不把 USJ 的時間浪費在排隊。</p></div></div>
+          <div class="express-card">
+            <div class="express-visual"><span class="eyebrow-badge">RECOMMENDED</span><strong>EXPRESS<br>PASS 5</strong><small>09 / 24</small></div>
+            <div class="express-copy">
+              <p class="express-price">¥16,800 <small>起 / 人</small></p>
+              <p>優先找含 Donkey Kong、Mario Kart、Flying Dinosaur、Harry Potter 的組合。</p>
+              <div class="soft-note"><b>購買規則：</b>KKday 選 9/24，4 人都有同方案且每人 ≤ ¥20,000 就買；超過就改看其他 Pass 4 / Halloween 組合。</div>
+              <a class="primary-cta" href="https://www.kkday.com/zh-tw/product/18618-universal-studios-japan-express-pass-osaka" target="_blank" rel="noopener noreferrer"><span>查看 KKday Express Pass</span><b>OPEN</b></a>
+            </div>
+          </div>
+        </section>
+
+        <section id="trip-checklist" class="content-section checklist-section section-anchor">
+          <div class="section-title-row checklist-title-row">
+            <div><p class="section-kicker">CHECKLIST</p><h2>出發前確認</h2><p class="section-caption">勾選狀態會存在這支手機裡。</p></div>
+            <button class="text-button" type="button" @click="resetChecklist">重設</button>
+          </div>
+          <div class="checklist-summary">
+            <div class="checklist-ring" :style="{ '--progress': `${progress * 3.6}deg` }"><span>{{ progress }}%</span></div>
+            <div><strong>{{ completedCount }} / {{ checklistItems.length }}</strong><span>項目已完成</span></div>
+          </div>
+          <div class="check-groups">
+            <section v-for="([group, items]) in trip.checklist" :key="group" class="check-group">
+              <h3>{{ group }}</h3>
+              <label v-for="([key, title, desc]) in items" :key="key" class="check-row" :class="{ checked: !!checks[key] }">
+                <input type="checkbox" :checked="!!checks[key]" @change="updateCheck(key, $event.target.checked)" />
+                <span class="custom-check">✓</span>
+                <span class="check-copy"><strong>{{ title }}</strong><small>{{ desc }}</small></span>
+              </label>
+            </section>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-title-row"><div><p class="section-kicker">ESSENTIALS</p><h2>eSIM / 手機 / 交通</h2><p class="section-caption">到日本後最常用的四件事。</p></div></div>
+          <div class="info-grid">
+            <article v-for="(item, index) in trip.travelInfo" :key="item.title" class="info-card">
+              <span class="info-index">0{{ index + 1 }}</span><div><h3>{{ item.title }}</h3><p>{{ item.desc }}</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-title-row"><div><p class="section-kicker">BUDGET</p><h2>交通費速覽</h2><p class="section-caption">先抓固定交通費，計程車與臨時移動另外算。</p></div></div>
+          <div class="cost-grid">
+            <div v-for="([cost, label], index) in trip.costs" :key="index" class="cost-card" :class="{ total: index === trip.costs.length - 1 }">
+              <span class="cost-sequence">{{ index === trip.costs.length - 1 ? 'TOTAL' : `0${index + 1}` }}</span>
+              <strong>{{ cost }}</strong><span class="cost-label">{{ label }}</span>
+            </div>
+          </div>
+        </section>
+      </template>
+    </div>
 
     <footer class="site-footer">
       <p>少折返、少排隊，把時間留給真的想玩的地方。</p>
@@ -281,7 +294,7 @@ onBeforeUnmount(() => {
     </footer>
   </main>
 
-  <nav class="bottom-nav" aria-label="每日行程">
+  <nav v-if="activeView === 'itinerary'" class="bottom-nav" aria-label="每日行程">
     <div class="bottom-nav-inner">
       <button
         v-for="(day, index) in trip.days"

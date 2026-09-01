@@ -95,6 +95,47 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .progress-track { height: 3px; overflow: hidden; margin-top: 8px; border-radius: 999px; background: rgba(255,255,255,.15); }
 .progress-track span { display: block; height: 100%; border-radius: inherit; background: white; transition: width .3s ease; }
 
+/* Primary views */
+.view-tabs {
+  position: sticky;
+  z-index: 40;
+  top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 14px;
+  padding: 5px;
+  border: 1px solid rgba(20,31,50,.09);
+  border-radius: 18px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 10px 30px rgba(22,37,66,.11);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+}
+.view-tabs button {
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 9px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #747b84;
+  text-align: left;
+  cursor: pointer;
+}
+.view-tabs button > span { grid-row: 1 / -1; color: #a5abb2; font-size: 9px; font-weight: 850; }
+.view-tabs button strong { align-self: end; font-size: 13px; line-height: 1.2; }
+.view-tabs button small { align-self: start; margin-top: 2px; font-size: 8px; line-height: 1.2; }
+.view-tabs button.active { background: var(--blue); color: #fff; box-shadow: 0 5px 14px rgba(10,109,240,.2); }
+.view-tabs button.active > span { color: rgba(255,255,255,.68); }
+.view-tabs button:focus-visible { outline: 3px solid rgba(10,109,240,.28); outline-offset: 2px; }
+.view-content { scroll-margin-top: 84px; }
+
 /* Important notice */
 .notice-card {
   display: flex;
@@ -121,6 +162,7 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
+.decision-section { padding-bottom: 14px; }
 .command-title-row { align-items: flex-start; margin: 0 0 14px; }
 .command-title-row > div { min-width: 0; }
 .command-count {
