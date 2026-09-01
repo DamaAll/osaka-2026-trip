@@ -243,11 +243,12 @@ weatherPlan:{title:'天氣切換',branches:[
 items:[
 {time:'05:50',title:'起床＋退房',desc:'全部行李一起帶走，不再回心齋橋。'},
 {time:'06:15–07:05',title:'心齋橋 → Universal City',desc:'先到環球塔寄行李。',transport:{head:'🚇＋🚆 心齋橋 → Universal City',fare:'約 ¥440',steps:['心齋橋 M19 搭御堂筋線往箕面萱野／新大阪方向 → 梅田 M16。','跟「JR 大阪駅」指標走，不要走去阪急／阪神。','JR 大阪搭大阪環狀線往西九条方面。','若列車直通桜島／Universal City 就直接坐；否則西九条轉 JR ゆめ咲線桜島行。','ユニバーサルシティ下車。']},actions:[['↗ 換飯店導航','https://www.google.com/maps/dir/?api=1&origin=Just+Sleep+Osaka+Shinsaibashi&destination=Hotel+Keihan+Universal+Tower&travelmode=transit','route']]},
-{time:'07:05',title:'Hotel Keihan Universal Tower 寄行李',desc:'飯店離 JR Universal City 與 USJ 都非常近。',note:'順便確認：櫃台是否 24 小時、能不能先辦入住登記、明天退房時間。今天會玩到深夜才回來。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Hotel+Keihan+Universal+Tower','map']]},
+{time:'07:05',title:'Hotel Keihan Universal Tower 寄行李',desc:'飯店離 JR Universal City 與 USJ 都非常近。',note:'順便問三件事：入住從幾點開始、櫃台是否 24 小時、明天退房時間。下午 15:00 會回來休息一趟，先問清楚才不會白跑。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Hotel+Keihan+Universal+Tower','map']]},
 {time:'07:15',title:'開始排 USJ',desc:'不要照表定開園時間才到；官方可能提早入園。',note:'開園時間官方常常接近日期才公布，出發前一週再確認一次。',actions:[['📍 USJ','https://www.google.com/maps/search/?api=1&query=Universal+Studios+Japan','map'],['↗ 步行導航','https://www.google.com/maps/dir/?api=1&origin=Hotel+Keihan+Universal+Tower&destination=Universal+Studios+Japan&travelmode=walking','route']]},
 {time:'入園後 5 分鐘內',title:'先處理 SUPER NINTENDO WORLD',desc:'有 Express 就以指定時段為骨架；沒有就第一時間在 USJ App 處理 Area Timed Entry / Standby Entry。',note:'整理券要先掃票入園才能抽，而且 4 支手機都要能操作。進園前先確認每個人的 App 都登入好、票券都在。'},
 {time:'白天',title:'大型設施優先',desc:'Mario Kart、Donkey Kong、Flying Dinosaur、Hollywood Dream、Harry Potter。',note:'Flying Dinosaur 這類設施要求隨身物品全部寄物，先想好誰保管什麼，不要每次都重新分配。'},
 {time:'11:30–12:30',title:'午餐｜避開高峰',desc:'園內熱門餐廳中午排 60–90 分鐘很正常。',note:'兩個做法：11:30 前先吃，或改買外帶攤位邊排隊邊解決。四個人不必綁在一起吃。'},
+{time:'15:00–16:15',title:'回環球塔休息｜正式入住',desc:'走出園區約 5 分鐘就到飯店。洗把臉、換襪子、躺 40 分鐘再回來。',status:'decision',statusLabel:'體力關鍵',note:'今天 05:50 起床、玩到閉園是 16 小時。你們住的地方就在隔壁，早上只寄了行李，這個休息點不用多花任何車程。順便正式 check-in 拿房卡，晚上回來不用再排櫃台。當日再入園記得確認手續。'},
 {time:'16:30–17:30',title:'晚餐｜Horror Nights 前先吃飽',desc:'天黑後動線會亂，先把晚餐解決掉。',note:'18:00 之後園區氣氛整個切換，找位子會更難。'},
 {time:'18:00+',title:'Halloween Horror Nights',desc:'依當日官方時間表安排 Biohazard、Sadako、Chainsaw Man 等活動。',note:'部分恐怖設施要對應的 Express 或另外的券才進得去，不是有門票就都能玩。當天先在 App 看清楚哪些要券。'},
 {time:'閉園後',title:'走回環球塔',desc:'玩完直接休息，不回心齋橋。',note:'回房後先秤行李，不要留到明天早上。'}]},

@@ -4,8 +4,22 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f5f7",
-  "theme_color": "#f5f5f7",
+  "background_color": "#0b3a66",
+  "theme_color": "#0b3a66",
   "lang": "zh-Hant",
-  "description": "大阪、京都、USJ 5 天 4 夜手機旅行執行頁"
+  "description": "大阪、京都、USJ 5 天 4 夜手機旅行執行頁",
+  "icons": [
+    {
+      "src": "/osaka-2026-trip/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/osaka-2026-trip/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }

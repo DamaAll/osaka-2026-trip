@@ -207,6 +207,26 @@ test('service worker precaches the app shell and every hashed asset', async ({ p
   for (const asset of referenced) expect(cached).toContain(asset)
 })
 
+// 四支手機都會把這頁加到主畫面，沒有圖示就只能靠網頁截圖認，等於找不到。
+test('installable icons resolve', async ({ page, request }) => {
+  await openTrip(page)
+
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href')
+  const manifest = await (await request.get(manifestHref)).json()
+  expect(manifest.icons?.length).toBeGreaterThanOrEqual(2)
+
+  for (const icon of manifest.icons) {
+    const res = await request.get(icon.src)
+    expect(res.status(), `${icon.src} should be served`).toBe(200)
+    expect(res.headers()['content-type']).toContain('image/png')
+  }
+
+  // iOS 不讀 manifest 的 icons，只認這個 link。
+  const appleIcon = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href')
+  expect(appleIcon).toBeTruthy()
+  expect((await request.get(new URL(appleIcon, page.url()).pathname)).status()).toBe(200)
+})
+
 test('bottom navigation scrolls to the selected day', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)
