@@ -2,7 +2,11 @@
 import ActionButtons from './ActionButtons.vue'
 import TransportCard from './TransportCard.vue'
 
-defineProps({ day: { type: Object, required: true } })
+defineProps({
+  day: { type: Object, required: true },
+  note: { type: String, default: '' }
+})
+defineEmits(['update:note'])
 </script>
 
 <template>
@@ -86,6 +90,21 @@ defineProps({ day: { type: Object, required: true } })
         </div>
       </article>
     </div>
+
+    <details class="day-note" :open="!!note">
+      <summary>
+        <span>當天筆記</span>
+        <b>{{ note.trim() ? '已寫' : '空白' }}</b>
+      </summary>
+      <textarea
+        :value="note"
+        maxlength="2000"
+        rows="3"
+        placeholder="吃到的店名、明天要補買的東西、想記得的事。只存在這支手機，會跟著備份檔一起匯出。"
+        :aria-label="`${day.no} 當天筆記`"
+        @input="$emit('update:note', $event.target.value)"
+      ></textarea>
+    </details>
   </section>
 </template>
 
@@ -228,6 +247,67 @@ defineProps({ day: { type: Object, required: true } })
   font-size: 10px;
   font-weight: 850;
 }
+
+/* 有寫過就預設展開，不用每天再點一次才看得到自己記的東西。 */
+.day-note {
+  margin: 0 12px 12px;
+  border: 1px solid #e9eef5;
+  border-radius: 14px;
+  background: #f7f9fc;
+}
+
+.day-note > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 13px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.day-note > summary::-webkit-details-marker { display: none; }
+
+.day-note > summary span {
+  color: #4e5968;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.day-note > summary b {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #dce9f8;
+  color: #6b7684;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.day-note textarea {
+  width: 100%;
+  display: block;
+  margin: 0 0 13px;
+  padding: 11px 12px;
+  border: 1px solid #dce4ee;
+  border-radius: 11px;
+  background: #fff;
+  color: var(--ink, #17171a);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.day-note textarea:focus-visible {
+  outline: 3px solid rgba(10,109,240,.28);
+  outline-offset: 1px;
+}
+
+/* 讓 textarea 不要頂到卡片邊 */
+.day-note[open] > summary { padding-bottom: 4px; }
+.day-note textarea { width: calc(100% - 26px); margin-left: 13px; }
 
 /*
  * Timeline v3: the rail lives inside the Day card and participates in normal

@@ -13,6 +13,7 @@ const shoppingOwners = ['共用', '成員 1', '成員 2', '成員 3', '成員 4'
 const shoppingStorageKey = 'osaka_2026_shopping_entries'
 const shoppingBudgetKey = 'osaka_2026_shopping_budget'
 const emergencyStorageKey = 'osaka_2026_emergency_info'
+const dayNotesKey = 'osaka_2026_day_notes'
 const tripStart = new Date('2026-09-21T00:00:00+09:00')
 const tripEnd = new Date('2026-09-26T00:00:00+09:00')
 const oneDay = 86400000
@@ -30,6 +31,8 @@ const dataMessage = ref('')
 const fileInput = ref(null)
 const emergencyInfo = reactive({ hotelName: '', hotelAddress: '', hotelPhone: '', booking: '', insurance: '', contact: '' })
 const emergencyError = ref('')
+// 旅行中隨手記（店名、明天要補買的東西），也讓這頁在回國後還留得住東西。
+const dayNotes = reactive({})
 let observer
 let pretextObserver
 let pretextFrame
@@ -150,6 +153,28 @@ const loadShopping = () => {
   }
 }
 
+const loadDayNotes = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(dayNotesKey) || '{}')
+    trip.days.forEach(day => {
+      dayNotes[day.id] = typeof stored[day.id] === 'string' ? stored[day.id].slice(0, 2000) : ''
+    })
+  } catch {
+    trip.days.forEach(day => { dayNotes[day.id] = '' })
+  }
+}
+
+const updateDayNote = (id, value) => {
+  dayNotes[id] = value.slice(0, 2000)
+  try {
+    localStorage.setItem(dayNotesKey, JSON.stringify(dayNotes))
+  } catch {
+    // 寫不進去就算了，不要在記筆記的當下跳錯誤打斷使用者
+  }
+}
+
+const noteCount = computed(() => Object.values(dayNotes).filter(text => text && text.trim()).length)
+
 const loadEmergencyInfo = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(emergencyStorageKey) || '{}')
@@ -175,7 +200,8 @@ const buildDataExport = () => ({
   exportedAt: new Date().toISOString(),
   checks: Object.fromEntries(checklistItems.value.map(([key]) => [key, !!checks[key]])),
   shopping: { budget: Math.max(0, Number(shoppingBudget.value) || 0), entries: shoppingEntries.value },
-  emergency: { ...emergencyInfo }
+  emergency: { ...emergencyInfo },
+  dayNotes: { ...dayNotes }
 })
 
 const exportData = () => {
@@ -212,9 +238,14 @@ const importData = async (event) => {
     Object.keys(emergencyInfo).forEach(key => {
       emergencyInfo[key] = typeof parsed.emergency?.[key] === 'string' ? parsed.emergency[key].slice(0, 160) : ''
     })
+    trip.days.forEach(day => {
+      const text = parsed.dayNotes?.[day.id]
+      dayNotes[day.id] = typeof text === 'string' ? text.slice(0, 2000) : ''
+    })
     persistShopping()
     persistEmergencyInfo()
-    dataMessage.value = '已匯入備份，Checklist、購物與緊急資訊都已更新。'
+    try { localStorage.setItem(dayNotesKey, JSON.stringify(dayNotes)) } catch {}
+    dataMessage.value = '已匯入備份，Checklist、購物、筆記與緊急資訊都已更新。'
   } catch {
     dataMessage.value = '匯入失敗，請選擇這個網站匯出的 JSON 備份檔。'
   }
@@ -336,6 +367,7 @@ onMounted(async () => {
   loadChecks()
   loadShopping()
   loadEmergencyInfo()
+  loadDayNotes()
   if (views.includes(params.get('view'))) activeView.value = params.get('view')
   else if (tripPhase.value === 'before') activeView.value = 'prep'
   if (trip.days.some(day => day.id === params.get('day'))) activeDay.value = params.get('day')
@@ -476,7 +508,13 @@ onBeforeUnmount(() => {
           <div class="section-title-row">
             <div><p class="section-kicker">ITINERARY</p><h2>D1–D5 行程</h2><p class="section-caption">照時間往下走；交通、注意事項與導航都在當天。</p></div>
           </div>
-          <DaySection v-for="day in trip.days" :key="day.id" :day="day" />
+          <DaySection
+            v-for="day in trip.days"
+            :key="day.id"
+            :day="day"
+            :note="dayNotes[day.id] || ''"
+            @update:note="updateDayNote(day.id, $event)"
+          />
         </section>
       </template>
 

@@ -271,6 +271,26 @@ test('checklist persists after reload', async ({ page }) => {
   await expect(page.locator('.check-row input').first()).toBeChecked()
 })
 
+// 旅行中隨手記的東西掉了就沒了，存檔與備份都要真的動。
+test('day notes persist and travel with the backup', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  const note = page.locator('#d3 .day-note')
+  await expect(note.locator('summary b')).toHaveText('空白')
+  await note.locator('summary').click()
+  await note.locator('textarea').fill('錦市場那家玉子燒要再買一份')
+  await expect(note.locator('summary b')).toHaveText('已寫')
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.getByRole('tab', { name: /行程/ }).click()
+  await expect(page.locator('#d3 .day-note textarea')).toHaveValue('錦市場那家玉子燒要再買一份')
+
+  // 備份帶得走，換手機才不會整份不見。
+  const exported = await page.evaluate(() => JSON.parse(localStorage.getItem('osaka_2026_day_notes')))
+  expect(exported.d3).toBe('錦市場那家玉子燒要再買一份')
+})
+
 test('shopping calculator updates totals, split and persists user items', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'money')
