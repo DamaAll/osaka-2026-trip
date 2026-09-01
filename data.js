@@ -21,6 +21,7 @@ decisions:[
 {when:'D1 · 大幅延誤',badge:'FALLBACK',title:'巴士收班就改搭南海電鐵',rule:'班機延誤到巴士末班之後，不要在機場等。改搭南海電鐵到なんば（往なんば末班 23:55），再走或搭計程車到飯店。先傳訊息告訴飯店會晚到。',tone:'amber',action:'南海電鐵官網',url:'https://www.nankai.co.jp/'},
 {when:'D2 · 訂不到時',badge:'PLAN B',title:'ソウル 訂不到就改 キナシ',rule:'ソウル 只能電話訂，訂不到就改 ヤキニク キナシ 心斎橋（食べログ 3.56、312 則），TableCheck 線上就能訂，而且在飯店旁邊。',tone:'blue'},
 {when:'每天 · 出門前',badge:'HEAT',title:'體感 30°C 以上就降速',rule:'9 月下旬關西仍然很熱。隨身帶水、每 2 小時進一次冷氣、上坡段改計程車，不硬撐。',tone:'amber'},
+{when:'落後 30 分鐘時',badge:'CUT',title:'砍掉下一個可跳過的點',rule:'不要用走快一點把進度追回來，那只會把疲勞累積到晚上。直接砍掉下一個標「可跳過」的站，把時間還給當下正在逛的地方。這趟每天都排得很滿，砍一站不會少看什麼。',tone:'blue'},
 {when:'D2 · 早上',badge:'OPTIONAL',title:'早上兩站都可以跳過',rule:'睡眠不足或下雨就直接睡到 09:30，10:30 進 Den Den Town。八阪神社與黑門市場都免費，跳過不損失金錢。',tone:'blue'},
 {when:'D3 · 出發前',badge:'RAIN B',title:'京都大雨改走室內線',rule:'縮短伏見稻荷，改三十三間堂、錦市場、寺町與新京極商店街。',tone:'green',action:'京都官方雨天建議',url:'https://global.kyoto.travel/en/faq/detail.php?faq_id=1019'},
 {when:'任何一天',badge:'TYPHOON',title:'颱風警報就切應急流程',rule:'先確認航班狀態，再決定當天行程。不要在颱風日排長距離移動，細節看「應急」分頁。',tone:'amber',action:'查 KIX 航班狀態',url:'https://www.kansai-airport.or.jp/flight'}],

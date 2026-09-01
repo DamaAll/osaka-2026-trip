@@ -36,7 +36,7 @@ for (const width of widths) {
     await expect(page.locator('.timeline-side')).toHaveCount(0)
     await expect(page.locator('.view-tabs button')).toHaveCount(5)
     await expect(page.locator('.critical-row')).toHaveCount(0)
-    await expect(page.locator('.decision-card')).toHaveCount(7)
+    await expect(page.locator('.decision-card')).toHaveCount(8)
     await expect(page.locator('.rain-plan')).toHaveCount(2)
     await expect(page.locator('.choice-row')).toHaveCount(3)
 
