@@ -142,18 +142,18 @@ const stopState = (index) => {
   min-width: 0;
 }
 
-/* 今天的卡片要一眼認得出來，其他天退到背景。 */
-.day-section.is-today {
-  outline: 2px solid var(--blue, #0a6df0);
-  outline-offset: -2px;
-}
-
+/*
+ * 今天不需要外框。卡片有 3.4 個螢幕高，框線會沿著螢幕兩側延伸三個螢幕，
+ * 那不是在標示今天，是噪音。其他天已經收合，今天是唯一展開的那張，
+ * 標題的徽章補完最後一哩就夠。
+ */
 .today-tag {
   margin-left: 7px;
-  padding: 2px 7px;
+  padding: 2px 8px;
+  border: 1px solid #bcd8fb;
   border-radius: 999px;
-  background: var(--blue, #0a6df0);
-  color: #fff;
+  background: #eef6ff;
+  color: var(--blue-deep, #0054c7);
   font-size: 10px;
   font-weight: 850;
   letter-spacing: 0;
@@ -681,13 +681,14 @@ const stopState = (index) => {
     margin-top: 10px;
   }
 
+  /*
+   * 不要讓按鈕拉伸填滿整行。原本 flex:1 1 auto 加上 primary 強制 100%，
+   * 會讓「清水寺」三個字獨佔一個滿版的框，看起來像空元件。
+   * 依內容寬度排列，短標籤就自然併成一列。
+   */
   :deep(.action) {
     min-height: 44px;
-    flex: 1 1 auto;
-  }
-
-  :deep(.action-primary) {
-    flex-basis: 100%;
+    flex: 0 1 auto;
   }
 }
 </style>

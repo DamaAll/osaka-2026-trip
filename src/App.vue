@@ -434,6 +434,11 @@ onMounted(async () => {
   loadDayNotes()
   readClock()
   clockTimer = setInterval(readClock, 60000)
+  /*
+   * 旅行中直接用收合版。完整 hero 佔首屏 47%，而收合條已經帶著同樣的焦點資訊；
+   * 每次重開 PWA 或重新整理都要先滑過半個螢幕才看得到內容，不值得。
+   */
+  if (tripPhase.value === 'during') heroCompact.value = true
   if (views.includes(params.get('view'))) activeView.value = params.get('view')
   else if (tripPhase.value === 'before') activeView.value = 'prep'
   if (trip.days.some(day => day.id === params.get('day'))) activeDay.value = params.get('day')
