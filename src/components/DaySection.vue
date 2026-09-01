@@ -415,6 +415,8 @@ defineEmits(['update:note'])
 .status-decision { border-color: #f0d39b; background: #fff7e6; color: #966000; }
 .status-optional { border-color: #cedff5; background: #f1f6fc; color: #476987; }
 .status-choice { border-color: #c3dfd5; background: #eff8f4; color: #167253; }
+/* 空白時段：刻意做成綠色的「這裡不用做事」，跟其他需要動作的標記區隔開。 */
+.status-free { border-color: #bfe2d5; background: #f1f9f5; color: #16835b; }
 
 .journey-content h3 {
   margin: 0;
