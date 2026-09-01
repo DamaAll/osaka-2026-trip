@@ -36,7 +36,7 @@ for (const width of widths) {
     await expect(page.locator('.timeline-side')).toHaveCount(0)
     await expect(page.locator('.view-tabs button')).toHaveCount(5)
     await expect(page.locator('.critical-row')).toHaveCount(0)
-    await expect(page.locator('.decision-card')).toHaveCount(8)
+    await expect(page.locator('.decision-card')).toHaveCount(9)
     await expect(page.locator('.rain-plan')).toHaveCount(2)
     await expect(page.locator('.choice-row')).toHaveCount(3)
 
@@ -294,6 +294,22 @@ test('the current stop uses Japan time even on a Taipei phone', async ({ browser
   // 台北時間是 12:00，日本是 13:00。要落在 12:30 開始的那一站，不是前一站。
   await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
   await context.close()
+})
+
+/*
+ * 一般 Studio Pass 不能再入場。行程若把休息排在園外，晚上的 Halloween Horror
+ * Nights 就整段沒了，所以這條規則必須留在頁面上，D4 也不能出現離園休息。
+ */
+test('D4 never sends anyone out of the park to rest', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  await expect(page.getByText('進了 USJ 就不能出園')).toBeVisible()
+
+  const d4 = page.locator('#d4')
+  await expect(d4.getByRole('heading', { name: /園內 Recovery/ })).toBeVisible()
+  await expect(d4.getByText('回環球塔休息')).toHaveCount(0)
+  await expect(d4.getByText(/走出閘門就回不去|出去就回不來/).first()).toBeVisible()
 })
 
 // 切分頁必須留下歷史記錄，否則 Android 的返回鍵會直接離開網站。
