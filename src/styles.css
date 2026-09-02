@@ -484,38 +484,51 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .shopping-error { margin: 8px 2px 0; color: #a6382c; font-size: 12px; font-weight: 700; }
 .shopping-entry-list { display: grid; gap: 8px; margin-top: 12px; }
 .shopping-entry {
-  padding: 13px;
   border: 1px solid #dfe4ea;
   border-radius: 16px;
   background: #fff;
 }
-.shopping-entry-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
-.shopping-entry-topline > span { color: #0b65cf; font-size: 11px; font-weight: 850; letter-spacing: .03em; }
-.shopping-entry-topline button {
+/* 收合時是一列可掃視的紀錄；展開才變成編輯欄位。 */
+.shopping-entry > summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  min-height: 56px;
+  padding: 9px 13px;
+  cursor: pointer;
+  list-style: none;
+}
+.shopping-entry > summary::-webkit-details-marker { display: none; }
+.entry-tag {
+  align-self: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #0b65cf;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.entry-title { min-width: 0; }
+.entry-title strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+.entry-title small { display: block; margin-top: 1px; color: var(--muted-2); font-size: 11px; font-weight: 700; }
+.shopping-entry > summary b { color: #0b65cf; font-size: 14px; white-space: nowrap; }
+.shopping-entry[open] > summary { border-bottom: 1px solid #eef1f5; }
+.entry-edit { padding: 11px 13px 13px; }
+.entry-numbers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: end; margin-top: 9px; }
+.entry-delete {
+  width: 100%;
   min-height: 44px;
-  padding: 0 11px;
+  margin-top: 10px;
   border: 1px solid #ead8d5;
-  border-radius: 9px;
+  border-radius: 10px;
   background: #fff8f7;
   color: #a14539;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
-.entry-numbers { display: grid; grid-template-columns: 104px minmax(0, 1fr) 70px minmax(86px, auto); gap: 8px; align-items: end; margin-top: 9px; }
-.shopping-entry output {
-  min-width: 0;
-  min-height: 44px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 5px 9px;
-  border-radius: 10px;
-  background: #eef6ff;
-}
-.shopping-entry output > span { margin: 0; }
-.shopping-entry output strong { color: #0b65cf; font-size: 12px; overflow-wrap: anywhere; }
 .shopping-empty {
   min-height: 170px;
   display: grid;
@@ -1070,10 +1083,14 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
   .focus-card strong { font-size: 14px; }
   .hotline-row { gap: 10px; padding: 11px; }
   .hotline-copy strong { font-size: 16px; }
-  .split-row { grid-template-columns: minmax(0, 1fr) auto; }
-  .split-row span { grid-column: 1 / -1; margin-top: -2px; }
-  .entry-numbers { grid-template-columns: minmax(0, 1fr) 70px; }
-  .shopping-entry output { grid-column: 1 / -1; align-items: flex-end; }
+  /*
+   * 窄螢幕要明確指定位置，否則 span 佔滿整列後金額會被擠到第三行，
+   * 加上台幣就變成四行，四個人就吃掉半個螢幕。
+   */
+  .split-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; }
+  .split-row strong { grid-area: 1 / 1; }
+  .split-row span { grid-area: 2 / 1; margin-top: -2px; }
+  .split-row b { grid-area: 1 / 2 / span 2 / 3; text-align: right; }
   .data-tools-actions, .emergency-form { grid-template-columns: 1fr; }
   .emergency-save { grid-column: auto; }
 }

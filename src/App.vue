@@ -1014,16 +1014,27 @@ onBeforeUnmount(() => {
           <p v-if="shoppingError" class="shopping-error" role="alert">{{ shoppingError }}</p>
 
           <div v-if="shoppingEntries.length" class="shopping-entry-list">
-            <article v-for="item in shoppingEntries" :key="item.id" class="shopping-entry">
-              <div class="shopping-entry-topline"><span>{{ item.category }}</span><button type="button" :aria-label="`刪除 ${item.name}`" @click="removeShoppingItem(item.id)">刪除</button></div>
-              <label class="entry-name"><span>品名</span><input v-model.trim="item.name" type="text" maxlength="80" @input="persistShopping" /></label>
-              <div class="entry-numbers">
-                <label><span>歸屬</span><select v-model="item.owner" @change="persistShopping"><option v-for="o in ownerOptions" :key="o.id" :value="o.id">{{ o.label }}</option></select></label>
-                <label><span>單價</span><input v-model.number="item.price" type="number" min="0" step="1" inputmode="numeric" @input="persistShopping" /></label>
-                <label><span>數量</span><input v-model.number="item.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" @input="persistShopping" /></label>
-                <output><span>小計</span><strong>{{ formatYen(lineTotal(item)) }}</strong></output>
+            <!-- 已經記過的帳多半只是回頭看，所以預設收合；要改再點開。 -->
+            <details v-for="item in shoppingEntries" :key="item.id" class="shopping-entry">
+              <summary>
+                <span class="entry-tag">{{ item.category }}</span>
+                <span class="entry-title">
+                  <strong>{{ item.name }}</strong>
+                  <small>{{ ownerLabel(item.owner) }}<template v-if="item.quantity > 1"> · ×{{ item.quantity }}</template></small>
+                </span>
+                <b>{{ formatYen(lineTotal(item)) }}</b>
+              </summary>
+              <div class="entry-edit">
+                <label class="entry-name"><span>項目</span><input v-model.trim="item.name" type="text" maxlength="80" @input="persistShopping" /></label>
+                <div class="entry-numbers">
+                  <label><span>分類</span><select v-model="item.category" @change="persistShopping"><option v-for="category in shoppingCategories" :key="category" :value="category">{{ category }}</option></select></label>
+                  <label><span>歸屬</span><select v-model="item.owner" @change="persistShopping"><option v-for="o in ownerOptions" :key="o.id" :value="o.id">{{ o.label }}</option></select></label>
+                  <label><span>單價</span><input v-model.number="item.price" type="number" min="0" step="1" inputmode="numeric" @input="persistShopping" /></label>
+                  <label><span>數量</span><input v-model.number="item.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" @input="persistShopping" /></label>
+                </div>
+                <button type="button" class="entry-delete" :aria-label="`刪除 ${item.name}`" @click="removeShoppingItem(item.id)">刪除這筆</button>
               </div>
-            </article>
+            </details>
           </div>
           <div v-else class="shopping-empty"><strong>還沒有任何支出</strong><span>吃飯、計程車、購物都可以記在這裡。</span></div>
         </section>

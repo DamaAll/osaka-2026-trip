@@ -555,8 +555,8 @@ test('split covers shared expenses and shows TWD', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
 
-  await page.getByLabel('項目', { exact: true }).fill('燒肉 ソウル')
-  await page.getByLabel('金額（日幣）').fill('16000')
+  await page.locator('.shopping-form').getByLabel('項目', { exact: true }).fill('燒肉 ソウル')
+  await page.locator('.shopping-form').getByLabel('金額（日幣）').fill('16000')
   await page.locator('.shopping-form .shopping-more summary').click()
   // 這裡不能用 getByLabel：select 的 label 文字含所有 option，比對不到。
   await page.locator('.shopping-form .shopping-more-body select').first().selectOption('餐費')
@@ -594,8 +594,8 @@ test('renaming a member keeps their existing expenses', async ({ page }) => {
   await names.nth(0).blur()
 
   // 記一筆掛在成員 2 身上的個人支出。
-  await page.getByLabel('項目', { exact: true }).fill('扭蛋')
-  await page.getByLabel('金額（日幣）').fill('2000')
+  await page.locator('.shopping-form').getByLabel('項目', { exact: true }).fill('扭蛋')
+  await page.locator('.shopping-form').getByLabel('金額（日幣）').fill('2000')
   await page.locator('.shopping-form .shopping-more summary').click()
   await page.locator('.shopping-form .shopping-more-body select').nth(1).selectOption({ label: '成員 2' })
   await page.getByRole('button', { name: '加入', exact: true }).click()
@@ -616,6 +616,40 @@ test('renaming a member keeps their existing expenses', async ({ page }) => {
   await page.getByRole('tab', { name: /花費/ }).click()
   await expect(page.locator('.split-row').nth(1).locator('strong')).toHaveText('小美')
   await expect(page.locator('.split-row').nth(1).locator('b')).toContainText('¥2,000')
+})
+
+/*
+ * 記過的帳多半只是回頭看，四個欄位一直攤開會讓三筆支出佔滿整個螢幕。
+ * 收合時每列要仍看得到品名、歸屬與金額，點開才出現編輯欄位。
+ */
+test('logged expenses stay collapsed but readable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'money')
+
+  const add = async (name, price) => {
+    await page.locator('.shopping-form').getByLabel('項目', { exact: true }).fill(name)
+    await page.locator('.shopping-form').getByLabel('金額（日幣）').fill(String(price))
+    await page.getByRole('button', { name: '加入', exact: true }).click()
+  }
+  await add('燒肉 ソウル', 16000)
+  await add('地鐵一日券', 3200)
+
+  const first = page.locator('.shopping-entry').first()
+  await expect(first.locator('summary')).toContainText('燒肉 ソウル')
+  await expect(first.locator('summary')).toContainText('共用')
+  await expect(first.locator('summary b')).toHaveText('¥16,000')
+  await expect(first.locator('.entry-edit')).toBeHidden()
+
+  // 兩筆收合起來要塞得進一個螢幕，這正是改成收合的理由。
+  const listHeight = await page.locator('.shopping-entry-list').evaluate(el => el.getBoundingClientRect().height)
+  expect(listHeight).toBeLessThan(844)
+
+  await first.locator('summary').click()
+  await expect(first.locator('.entry-edit')).toBeVisible()
+
+  // 分類原本記錯就只能刪掉重記，現在可以直接改。
+  await first.locator('.entry-numbers select').first().selectOption('交通')
+  await expect(first.locator('.entry-tag')).toHaveText('交通')
 })
 
 // 換手機時名字要跟著備份走，不然分帳整張表又變回「成員 N」。
@@ -650,11 +684,11 @@ test('an idea from the buy tab lands in the split form', async ({ page }) => {
 
   // 跳到花費分頁，品名與分類都帶好了，只剩金額要填。
   await expect(page).toHaveURL(/view=money/)
-  await expect(page.getByLabel('項目', { exact: true })).toHaveValue('休足時間')
+  await expect(page.locator('.shopping-form').getByLabel('項目', { exact: true })).toHaveValue('休足時間')
   await page.locator('.shopping-form .shopping-more summary').click()
   await expect(page.locator('.shopping-form .shopping-more-body select').first()).toHaveValue('藥妝 / 日用品')
 
-  await page.getByLabel('金額（日幣）').fill('800')
+  await page.locator('.shopping-form').getByLabel('金額（日幣）').fill('800')
   await page.getByRole('button', { name: '加入', exact: true }).click()
   await expect(page.locator('.shopping-entry')).toHaveCount(1)
 })
@@ -766,11 +800,11 @@ test('shopping calculator updates totals, split and persists user items', async 
   await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
   await expect(page.getByText('還沒有任何支出')).toBeVisible()
 
-  await page.getByLabel('項目', { exact: true }).fill('USJ 瑪利歐帽')
-  await page.getByLabel('金額（日幣）').fill('1200')
+  await page.locator('.shopping-form').getByLabel('項目', { exact: true }).fill('USJ 瑪利歐帽')
+  await page.locator('.shopping-form').getByLabel('金額（日幣）').fill('1200')
   // 數量收在進階欄位裡，預設 1；要改才需要打開。
   await page.locator('.shopping-form .shopping-more summary').click()
-  await page.getByLabel('數量', { exact: true }).fill('2')
+  await page.locator('.shopping-form').getByLabel('數量', { exact: true }).fill('2')
   await page.getByRole('button', { name: '加入', exact: true }).click()
 
   await expect(page.locator('.shopping-entry')).toHaveCount(1)
@@ -780,6 +814,8 @@ test('shopping calculator updates totals, split and persists user items', async 
   await expect(page.locator('.split-row')).toHaveCount(4)
   await expect(page.locator('.split-row').first().locator('b')).toContainText('¥600')
 
+  // 已記的帳預設收合，要改金額得先點開那一列。
+  await page.locator('.shopping-entry summary').first().click()
   await page.locator('.shopping-entry input[type="number"]').first().fill('1500')
   await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥3,000')
   await expect(page.locator('.split-row').first().locator('b')).toContainText('¥750')
