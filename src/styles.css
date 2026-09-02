@@ -697,15 +697,41 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .checklist-summary > div:last-child span { margin-top: 2px; color: var(--muted-2); font-size: 12px; }
 .check-group { border-top: 1px solid #eff0f2; }
 .check-group > h3 { margin: 0; padding: 13px 17px 8px; color: var(--muted-2); font-size: 12px; font-weight: 800; letter-spacing: .02em; }
-.check-row { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 11px 17px; cursor: pointer; transition: background .15s ease; }
-.check-row + .check-row { border-top: 1px solid #f3f4f6; }
-.check-row.checked { background: #fbfcfd; }
-.check-row input { width: 19px; height: 19px; margin: 1px 0 0; flex: 0 0 auto; accent-color: var(--blue); cursor: pointer; }
-.custom-check { display: none; }
+/*
+ * 跟「出發前最後防線」的 .critical-row 同一套視覺：一樣的方框、字級與完成樣式。
+ * 兩份都是出發前要清掉的清單，長得不一樣只會讓人以為是兩種東西。
+ * 不套 min-height：那邊每列 72px，這裡有 31 項，會多出快 400px。
+ */
+.check-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 11px 17px;
+  cursor: pointer;
+}
+.check-row + .check-row { border-top: 1px solid #f0f2f4; }
+.check-row input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.custom-check {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #c6ccd3;
+  border-radius: 7px;
+  background: #fff;
+  color: transparent;
+  font-size: 12px;
+  font-weight: 900;
+}
+.check-row.checked .custom-check { border-color: #16835b; background: #16835b; color: #fff; }
+.check-row input:focus-visible + .custom-check { outline: 3px solid rgba(10,109,240,.28); outline-offset: 2px; }
 .check-copy { min-width: 0; }
-.check-copy strong { display: block; font-size: 13px; line-height: 1.4; transition: color .15s ease; }
+.check-copy strong { display: block; font-size: 13px; line-height: 1.35; }
 .check-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.45; }
-.check-row.checked .check-copy strong { color: #777a80; text-decoration: line-through; text-decoration-color: #c4c7cc; }
+.check-row.checked .check-copy { opacity: .55; }
+.check-row.checked .check-copy strong { text-decoration: line-through; }
 
 /*
  * Focus card — 首頁唯一的「現在該看什麼」。出發前指向未完成的關鍵任務，

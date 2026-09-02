@@ -778,14 +778,48 @@ test('checklist persists after reload', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'prep')
 
-  const firstCheck = page.locator('.check-row input').first()
-  if (await firstCheck.isChecked()) await firstCheck.uncheck()
-  await firstCheck.check()
+  // 原生 checkbox 藏起來、改用跟 P0 同一套的方框，所以點整列而不是點 input。
+  const firstRow = page.locator('.check-row').first()
+  const firstCheck = firstRow.locator('input')
+  if (await firstCheck.isChecked()) await firstRow.click()
+  await firstRow.click()
   await expect(firstCheck).toBeChecked()
+  await expect(firstRow).toHaveClass(/checked/)
 
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.getByRole('tab', { name: /準備/ }).click()
   await expect(page.locator('.check-row input').first()).toBeChecked()
+})
+
+/*
+ * P0 清單與 checklist 共用同一組 key，也就是同一個勾選框。兩邊叫不同名字時，
+ * 使用者會以為是兩件事、做完一次卻看到另一邊還沒勾。名稱必須一致。
+ */
+test('the P0 list and the checklist name the same item the same way', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'prep')
+
+  await page.locator('.check-group').evaluateAll(els => els.forEach(el => el.setAttribute('open', '')))
+  const checklistTitles = await page.locator('.check-copy strong').allInnerTexts()
+  const criticalTitles = await page.locator('.critical-copy strong').allInnerTexts()
+
+  // 這六項在兩份清單裡都出現，字面要一模一樣。
+  const shared = [
+    'USJ 電子票加入官方 App',
+    '投保旅平險＋不便險',
+    '查出 4 人回程托運額度',
+    '確認兩間房的房型與床型',
+    '確認每個人的交通卡方案'
+  ]
+  shared.forEach(title => {
+    expect(criticalTitles).toContain(title)
+    expect(checklistTitles).toContain(title)
+  })
+
+  // 每一項都以動作開頭，不能混進「⋯已完成」這種狀態句。
+  checklistTitles.forEach(title => {
+    expect(title).not.toMatch(/(已|完成|拿到|備妥|確定)$/)
+  })
 })
 
 // 旅行中隨手記的東西掉了就沒了，存檔與備份都要真的動。
