@@ -155,7 +155,7 @@ test('money view carries budget, tickets and per-person split', async ({ page })
   await expect(page.getByRole('heading', { name: '日幣要準備多少' })).toBeVisible()
   await expect(page.getByText('¥30,000–40,000')).toBeVisible()
   await expect(page.getByRole('heading', { name: '門票與入場費' })).toBeVisible()
-  await expect(page.getByText('Harukas 300 展望台')).toBeVisible()
+  await expect(page.getByText('清水寺 本堂')).toBeVisible()
   await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
 
   await noHorizontalOverflow(page)
