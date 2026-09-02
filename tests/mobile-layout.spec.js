@@ -590,6 +590,21 @@ test('renaming a member keeps their existing expenses', async ({ page }) => {
 
   await page.locator('.member-editor summary').click()
   const names = page.locator('.member-grid input')
+
+  /*
+   * 這區在 .shopping-form 外面，很容易漏掉欄位樣式或沿用到別人的格線規則，
+   * 結果四個欄位寬度不一、第 4 個佔滿整列。四個框要一樣寬、排成 2×2。
+   */
+  const boxes = await names.evaluateAll(els => els.map(el => el.getBoundingClientRect()))
+  expect(boxes).toHaveLength(4)
+  boxes.forEach(box => {
+    expect(box.height).toBeGreaterThanOrEqual(44)
+    expect(Math.abs(box.width - boxes[0].width)).toBeLessThan(1)
+  })
+  expect(Math.abs(boxes[1].top - boxes[0].top)).toBeLessThan(1)
+  expect(Math.abs(boxes[3].top - boxes[2].top)).toBeLessThan(1)
+  expect(boxes[2].top).toBeGreaterThan(boxes[0].top)
+
   await names.nth(0).fill('阿哲')
   await names.nth(0).blur()
 

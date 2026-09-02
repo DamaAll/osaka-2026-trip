@@ -977,7 +977,7 @@ onBeforeUnmount(() => {
               <span>成員名稱</span>
               <small>{{ MEMBER_IDS.map(ownerLabel).join('、') }}</small>
             </summary>
-            <div class="shopping-more-body member-grid">
+            <div class="member-grid">
               <label v-for="(id, index) in MEMBER_IDS" :key="id">
                 <span>{{ index + 1 }}</span>
                 <input v-model="memberNames[id]" type="text" maxlength="12" autocomplete="off" :placeholder="`成員 ${index + 1}`" @change="commitMemberName(id)" />
