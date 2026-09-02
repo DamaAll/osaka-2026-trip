@@ -781,17 +781,15 @@ onBeforeUnmount(() => {
           </details>
 
           <details class="fold">
-            <summary><strong>USJ Express Pass 決策</strong><small>價格合適就買，不把 USJ 時間浪費在排隊</small></summary>
+            <summary><strong>USJ 不買快速通關｜當天怎麼打</strong><small>{{ trip.usjPlan.caption }}</small></summary>
             <div class="fold-body">
-              <div class="express-card">
-                <div class="express-visual"><span class="eyebrow-badge">RECOMMENDED</span><strong>EXPRESS<br>PASS 5</strong><small>09 / 24</small></div>
-                <div class="express-copy">
-                  <p class="express-price">¥16,800 <small>起 / 人</small></p>
-                  <p>優先找含 Donkey Kong、Mario Kart、Flying Dinosaur、Harry Potter 的組合。</p>
-                  <div class="soft-note"><b>購買規則：</b>9/24 在萬聖節期間，價格通常高於平日。4 人同方案且每人 ≤ ¥20,000 就買；超過就改看 Pass 4 或萬聖節組合。</div>
-                  <a class="primary-cta" href="https://www.kkday.com/zh-tw/product/18618-universal-studios-japan-express-pass-osaka" target="_blank" rel="noopener noreferrer"><span>查看 KKday Express Pass</span><b>OPEN</b></a>
-                </div>
-              </div>
+              <p class="fold-warning">{{ trip.usjPlan.warning }}</p>
+              <ol class="step-list">
+                <li v-for="([title, desc]) in trip.usjPlan.steps" :key="title">
+                  <strong>{{ title }}</strong><span>{{ desc }}</span>
+                </li>
+              </ol>
+              <p class="fold-note">{{ trip.usjPlan.note }}</p>
             </div>
           </details>
         </section>

@@ -462,6 +462,14 @@ test('D4 never sends anyone out of the park to rest', async ({ page }) => {
   // D4 當天，這條規則必須直接在外層顯示，不能藏在摺疊裡。
   await expect(page.locator('.decision-section > .decision-grid').getByText('進了 USJ 就不能出園')).toBeVisible()
 
+  // 沒買快速通關，整理券是唯一保障，打法不能從頁面上消失。
+  await page.getByRole('tab', { name: /準備/ }).click()
+  const usj = page.locator('.fold', { hasText: '不買快速通關' })
+  await usj.locator('summary').click()
+  await expect(usj.locator('.step-list li')).toHaveCount(6)
+  await expect(usj.getByText(/開園先衝咚奇剛/)).toBeVisible()
+  await page.getByRole('tab', { name: /行程/ }).click()
+
   const d4 = page.locator('#d4')
   await expect(d4.getByRole('heading', { name: /園內 Recovery/ })).toBeVisible()
   await expect(d4.getByText('回環球塔休息')).toHaveCount(0)
