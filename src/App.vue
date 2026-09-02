@@ -24,7 +24,8 @@ const activeDay = ref(trip.days[0]?.id || '')
 const isOnline = ref(navigator.onLine)
 const checks = reactive({})
 const shoppingEntries = ref([])
-const shoppingBudget = ref(0)
+// 空字串而不是 0：欄位標示「可不填」，顯示 0 會讓人以為已經填過。
+const shoppingBudget = ref('')
 const shoppingDraft = reactive({ name: '', category: shoppingCategories[0], owner: shoppingOwners[0], price: '', quantity: 1 })
 const shoppingError = ref('')
 const dataMessage = ref('')
@@ -43,6 +44,9 @@ const lineTotal = (item) => Math.max(0, Number(item.price) || 0) * Math.max(1, N
 const checklistItems = computed(() => trip.checklist.flatMap(([, items]) => items))
 const completedCount = computed(() => checklistItems.value.filter(([key]) => checks[key]).length)
 const progress = computed(() => checklistItems.value.length ? Math.round((completedCount.value / checklistItems.value.length) * 100) : 0)
+// 整組勾完就收起來，讓還沒做的浮上來；31 項全開有 6 個螢幕高。
+const groupDoneCount = (items) => items.filter(([key]) => checks[key]).length
+const groupDone = (items) => groupDoneCount(items) === items.length
 const shoppingTotal = computed(() => shoppingEntries.value.reduce((total, item) => total + lineTotal(item), 0))
 const shoppingSharedTotal = computed(() => shoppingEntries.value.reduce((total, item) => (
   item.owner === '共用' ? total + lineTotal(item) : total
@@ -134,7 +138,8 @@ const todayProgress = computed(() => {
   let current = -1
   let next = -1
   items.forEach((item, index) => {
-    const start = startMinutes(item.time)
+    // 顯示用的 time 可以是「一開園」「白天」這種自然語言；引擎改讀 progressTime。
+    const start = startMinutes(item.progressTime || item.time)
     if (start === null) return
     if (start <= nowMinutes.value) current = index
     else if (next === -1) next = index
@@ -246,10 +251,11 @@ const loadShopping = () => {
         price: Math.max(0, Number(item.price) || 0),
         quantity: Math.min(99, Math.max(1, Number(item.quantity) || 1))
       }))
-    shoppingBudget.value = Math.max(0, Number(localStorage.getItem(shoppingBudgetKey)) || 0)
+    const storedBudget = Math.max(0, Number(localStorage.getItem(shoppingBudgetKey)) || 0)
+    shoppingBudget.value = storedBudget || ''
   } catch {
     shoppingEntries.value = []
-    shoppingBudget.value = 0
+    shoppingBudget.value = ''
   }
 }
 
@@ -326,7 +332,7 @@ const importData = async (event) => {
     if (!parsed || typeof parsed !== 'object' || typeof parsed.checks !== 'object') throw new Error('invalid')
     checklistItems.value.forEach(([key]) => updateCheck(key, parsed.checks[key] === true))
     const shopping = parsed.shopping || {}
-    shoppingBudget.value = Math.max(0, Number(shopping.budget) || 0)
+    shoppingBudget.value = Math.max(0, Number(shopping.budget) || 0) || ''
     shoppingEntries.value = Array.isArray(shopping.entries) ? shopping.entries.map(item => ({
       id: String(item.id || `${Date.now()}-${Math.random()}`),
       name: String(item.name || '').trim().slice(0, 80),
@@ -708,14 +714,17 @@ onBeforeUnmount(() => {
             <div><strong>{{ completedCount }} / {{ checklistItems.length }}</strong><span>項目已完成</span></div>
           </div>
           <div class="check-groups">
-            <section v-for="([group, items]) in trip.checklist" :key="group" class="check-group">
-              <h3>{{ group }}</h3>
+            <details v-for="([group, items]) in trip.checklist" :key="group" class="check-group" :open="!groupDone(items)">
+              <summary>
+                <h3>{{ group }}</h3>
+                <b :class="{ done: groupDone(items) }">{{ groupDoneCount(items) }} / {{ items.length }}</b>
+              </summary>
               <label v-for="([key, title, desc]) in items" :key="key" class="check-row" :class="{ checked: !!checks[key] }">
                 <input type="checkbox" :checked="!!checks[key]" @change="updateCheck(key, $event.target.checked)" />
                 <span class="custom-check">✓</span>
                 <span class="check-copy"><strong>{{ title }}</strong><small>{{ desc }}</small></span>
               </label>
-            </section>
+            </details>
           </div>
         </section>
 
@@ -887,11 +896,20 @@ onBeforeUnmount(() => {
           </div>
 
           <form class="shopping-form" @submit.prevent="addShoppingItem">
+            <!-- 店裡單手輸入只需要品名和價錢；分類、歸屬、數量有預設值，收在下面。 -->
             <label class="field-name"><span>品名</span><input v-model="shoppingDraft.name" type="text" maxlength="80" autocomplete="off" placeholder="例如：USJ 瑪利歐帽" /></label>
-            <label><span>分類</span><select v-model="shoppingDraft.category"><option v-for="category in shoppingCategories" :key="category" :value="category">{{ category }}</option></select></label>
-            <label><span>歸屬</span><select v-model="shoppingDraft.owner"><option v-for="owner in shoppingOwners" :key="owner" :value="owner">{{ owner }}</option></select></label>
-            <label><span>單價（日幣）</span><input v-model="shoppingDraft.price" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
-            <label><span>數量</span><input v-model="shoppingDraft.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" /></label>
+            <label class="field-price"><span>單價（日幣）</span><input v-model="shoppingDraft.price" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+            <details class="shopping-more">
+              <summary>
+                <span>分類、歸屬、數量</span>
+                <small>{{ shoppingDraft.category }} · {{ shoppingDraft.owner }} · ×{{ shoppingDraft.quantity }}</small>
+              </summary>
+              <div class="shopping-more-body">
+                <label><span>分類</span><select v-model="shoppingDraft.category"><option v-for="category in shoppingCategories" :key="category" :value="category">{{ category }}</option></select></label>
+                <label><span>歸屬</span><select v-model="shoppingDraft.owner"><option v-for="owner in shoppingOwners" :key="owner" :value="owner">{{ owner }}</option></select></label>
+                <label><span>數量</span><input v-model="shoppingDraft.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" /></label>
+              </div>
+            </details>
             <button class="add-shopping-button" type="submit">加入購物清單</button>
           </form>
           <p v-if="shoppingError" class="shopping-error" role="alert">{{ shoppingError }}</p>

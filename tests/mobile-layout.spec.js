@@ -438,6 +438,45 @@ test('today rolls over at midnight without a reload', async ({ page }) => {
   await expect(page.locator('#d3.is-collapsed')).toHaveCount(1)
 })
 
+/*
+ * D4 早上三站的 time 是「一開園」「進場後」「白天」，引擎讀不到 HH:mm 就會整個
+ * 早上停在「開始排 USJ」、下一站直接跳 11:30——偏偏那是最需要指引的四小時。
+ * progressTime 讓顯示保持自然語言、引擎照樣能定位。
+ */
+test('D4 today engine covers the untimed morning stops', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-24T08:00:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+  await expect(page.locator('#d4 .stop-now h3')).toContainText('抽全員的整理券')
+  await expect(page.locator('#d4 .stop-next h3')).toContainText('其餘大型設施')
+})
+
+test('D4 today engine still points home after the park closes', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-24T21:45:00+09:00') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+  await expect(page.locator('#d4 .stop-now h3')).toContainText('走回環球塔')
+})
+
+// 整組勾完就收合，還沒做的才會留在畫面上。
+test('a fully checked group collapses and can be reopened', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'prep')
+
+  const group = page.locator('.check-group').first()
+  const boxes = group.locator('input[type="checkbox"]')
+  const total = await boxes.count()
+  await expect(group.locator('.check-row').first()).toBeVisible()
+
+  for (let i = 0; i < total; i++) await boxes.nth(i).check()
+
+  await expect(group.locator('summary b')).toHaveText(`${total} / ${total}`)
+  await expect(group.locator('.check-row').first()).toBeHidden()
+
+  await group.locator('summary').click()
+  await expect(group.locator('.check-row').first()).toBeVisible()
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
@@ -547,6 +586,8 @@ test('shopping calculator updates totals, split and persists user items', async 
 
   await page.getByLabel('品名', { exact: true }).fill('USJ 瑪利歐帽')
   await page.getByLabel('單價（日幣）').fill('1200')
+  // 數量收在進階欄位裡，預設 1；要改才需要打開。
+  await page.locator('.shopping-more summary').click()
   await page.getByLabel('數量', { exact: true }).fill('2')
   await page.getByRole('button', { name: '加入購物清單' }).click()
 

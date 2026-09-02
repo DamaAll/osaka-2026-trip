@@ -363,12 +363,39 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
   background: #0b3a66;
   color: #fff;
 }
-.shopping-summary > div:last-child { background: #eaf3ff; color: #164f82; }
-.shopping-summary small { margin-bottom: auto; color: rgba(255,255,255,.62); font-size: 11px; font-weight: 800; }
-.shopping-summary > div:last-child small { color: #6182a1; }
+/* 兩格同級，跟現金卡一樣用同一種淺色；原本一深一淺會讓左格看起來比較重要。 */
+.shopping-summary > div, .shopping-summary > div:last-child { background: #eaf3ff; color: #164f82; }
+.shopping-summary small { margin-bottom: auto; color: #6182a1; font-size: 11px; font-weight: 800; }
 .shopping-summary strong { font-size: 23px; line-height: 1.1; letter-spacing: -.04em; overflow-wrap: anywhere; }
-.shopping-summary span { margin-top: 6px; color: rgba(255,255,255,.66); font-size: 11px; }
-.shopping-summary > div:last-child span { color: #6182a1; }
+.shopping-summary span { margin-top: 6px; color: #6182a1; font-size: 11px; }
+
+/* 進階欄位收起來：店裡單手只填品名和價錢，其餘用預設值。 */
+.shopping-more { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
+.shopping-more > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 0 12px; cursor: pointer; list-style: none;
+}
+.shopping-more > summary::-webkit-details-marker { display: none; }
+.shopping-more > summary > span { font-size: 12px; font-weight: 800; color: #4e5968; }
+.shopping-more > summary > small { min-width: 0; overflow: hidden; color: var(--muted-2); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+.shopping-more > summary::after { content: '＋'; margin-left: 6px; color: var(--muted-2); font-weight: 700; }
+.shopping-more[open] > summary::after { content: '－'; }
+.shopping-more-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0 12px 12px; }
+.shopping-more-body label:last-child { grid-column: 1 / -1; }
+
+/* 整組勾完就收合，摘要列留下完成數。 */
+.check-group > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; cursor: pointer; list-style: none;
+}
+.check-group > summary::-webkit-details-marker { display: none; }
+.check-group > summary h3 { margin: 0; }
+.check-group > summary b {
+  flex: 0 0 auto; padding: 4px 9px; border-radius: 999px;
+  background: var(--surface-soft); color: var(--muted); font-size: 11px; font-weight: 800;
+}
+.check-group > summary b.done { background: #e6f5ee; color: #16835b; }
+.check-group > summary b.done::before { content: '✓ '; }
 .shopping-budget { display: block; margin-top: 9px; padding: 11px 13px; border: 1px solid #dfe4ea; border-radius: 13px; background: #fff; }
 .shopping-budget input { margin-top: 0; }
 .shopping-remaining { margin: 7px 2px 0; color: #2f6d49; font-size: 13px; }
@@ -407,7 +434,7 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .shopping-form input:focus,
 .shopping-form select:focus,
 .shopping-entry input:focus { border-color: #6aa8ee; box-shadow: 0 0 0 3px rgba(10,109,240,.12); }
-.shopping-form .field-name { grid-column: 1 / -1; }
+.shopping-form .field-name, .shopping-form .field-price, .shopping-form .add-shopping-button { grid-column: 1 / -1; }
 .add-shopping-button {
   grid-column: 1 / -1;
   min-height: 48px;
