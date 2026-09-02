@@ -94,7 +94,7 @@ test('decision rules and touch targets are usable on mobile', async ({ page }) =
    * 出發前不刪內容，只是換位置，所以摺疊裡必須找得到。
    */
   await expect(page.locator('.decision-section > .decision-grid .decision-card')).toHaveCount(5)
-  await expect(page.getByText('巴士是否還等 15:32')).toBeVisible()
+  await expect(page.getByText('計程車排超過 10 分就改 Metro 一站')).toBeVisible()
   await expect(page.getByText('颱風警報就切應急流程')).toBeVisible()
 
   const others = page.locator('.other-rules')
