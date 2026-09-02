@@ -57,8 +57,21 @@ const gapBefore = (index) => {
   const minutes = to - from
   // 超過一小時的多半是當下正在進行的活動，不是移動，標了反而誤導。
   if (minutes <= 0 || minutes > 60) return null
-  const label = cur.gapNote || (cur.transport ? (cur.transport.fare || cur.transport.head) : '')
-  return { minutes, label }
+  return { minutes, label: gapLabel(cur) }
+}
+
+// 分鐘數已經顯示了，描述只補「這段在幹嘛」，不重複時間。
+const gapLabel = (item) => {
+  if (item.gapNote) return item.gapNote
+  const t = item.transport
+  if (!t) return ''
+  const text = `${t.head || ''} ${t.fare || ''}`
+  if (text.includes('步行')) return '步行'
+  if (text.includes('🚌') || text.includes('巴士')) return '搭巴士'
+  // 有車資就是搭車。站名式的 head（心齋橋 M19 → なんば M20）不含「線」字，
+  // 只看關鍵字會落到籠統的「移動」。
+  if (text.includes('¥') || text.includes('🚇') || text.includes('🚆') || text.includes('線')) return '搭車'
+  return '移動'
 }
 const stopState = (index) => {
   if (!props.isToday) return ''
@@ -123,15 +136,20 @@ const stopState = (index) => {
         class="journey-item"
         :class="`stop-${stopState(index) || 'plain'}`"
       >
+        <!-- 空檔自成一列，掛在時間軸上，不屬於下一站的卡片。 -->
+        <template v-if="gapBefore(index)">
+          <div class="gap-rail" aria-hidden="true"></div>
+          <p class="journey-gap">
+            <b>{{ gapBefore(index).minutes }} 分</b>
+            <span v-if="gapBefore(index).label">{{ gapBefore(index).label }}</span>
+          </p>
+        </template>
+
         <div class="journey-rail" aria-hidden="true">
           <span class="journey-dot"></span>
         </div>
 
         <div class="journey-content">
-          <p v-if="gapBefore(index)" class="journey-gap">
-            <b>{{ gapBefore(index).minutes }} 分</b>
-            <span v-if="gapBefore(index).label">{{ gapBefore(index).label }}</span>
-          </p>
           <div class="journey-meta">
             <time class="journey-time">{{ item.time }}</time>
             <span v-if="stopState(index) === 'now'" class="stop-flag flag-now">現在</span>
@@ -528,25 +546,39 @@ const stopState = (index) => {
   overflow-wrap: anywhere;
 }
 
-/* 站與站之間那段時間在做什麼。刻意做得比站點本身弱，掃讀時不搶注意力。 */
-.journey-gap {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  margin: 0 0 10px;
-  color: #8a929c;
-  font-size: 12px;
-  line-height: 1.4;
+/*
+ * 站與站之間的移動。自成一列掛在時間軸上，用虛線接住兩個圓點之間的空隙，
+ * 讓它讀起來是「路上」而不是下一站卡片的標籤。
+ */
+.gap-rail {
+  position: relative;
+  min-height: 26px;
 }
 
-.journey-gap b {
-  flex: 0 0 auto;
-  padding: 2px 7px;
-  border: 1px dashed #d7dce2;
-  border-radius: 999px;
-  color: #6b7480;
-  font-weight: 800;
+.gap-rail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background-image: linear-gradient(180deg, #c3ccd6 0 3px, transparent 3px 7px);
+  background-size: 1px 7px;
 }
+
+.journey-gap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: #949aa3;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.journey-gap b { flex: 0 0 auto; color: #7b838d; font-weight: 800; }
 
 .journey-gap span {
   min-width: 0;
@@ -554,6 +586,8 @@ const stopState = (index) => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.journey-gap span::before { content: '· '; }
 
 /* 分類保持灰色低調：它永遠都在，彩色要留給偶爾出現的 status。 */
 .journey-type {

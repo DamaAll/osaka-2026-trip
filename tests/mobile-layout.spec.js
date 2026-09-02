@@ -486,15 +486,18 @@ test('gaps between stops say how long and what for', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)
 
-  // 08:25–09:05 → 09:20：15 分，且說明來自下一站的交通卡。
+  // 08:25–09:05 → 09:20：15 分，交通方式從下一站的交通卡推得。
   const kuromon = page.locator('#d2-stop-2 .journey-gap')
   await expect(kuromon.locator('b')).toHaveText('15 分')
-  await expect(kuromon.locator('span')).toContainText('步行約 12 分鐘')
+  await expect(kuromon.locator('span')).toHaveText('步行')
 
-  // 沒有交通卡的那些，改用 gapNote 說明。
+  // 沒有交通卡的那些，改用 gapNote，且不重複分鐘數。
   const bic = page.locator('#d2-stop-5 .journey-gap')
   await expect(bic.locator('b')).toHaveText('10 分')
-  await expect(bic.locator('span')).toContainText('日本橋走到難波')
+  await expect(bic.locator('span')).toHaveText('走到難波')
+
+  // 有車資的視為搭車，不要落到籠統的「移動」。
+  await expect(page.locator('#d2-stop-1 .journey-gap span')).toHaveText('搭車')
 
   // 每天第一站前面沒有空檔。
   await expect(page.locator('#d2-stop-0 .journey-gap')).toHaveCount(0)
