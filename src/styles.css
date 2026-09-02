@@ -369,6 +369,24 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .shopping-summary strong { font-size: 23px; line-height: 1.1; letter-spacing: -.04em; overflow-wrap: anywhere; }
 .shopping-summary span { margin-top: 6px; color: #6182a1; font-size: 11px; }
 
+/* 成員名稱：出發前填一次，序號留著讓四個欄位對得起來。 */
+.member-editor { margin-top: 12px; }
+.member-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.member-grid label { display: flex; align-items: center; gap: 8px; }
+.member-grid label > span {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e8eef7;
+  color: #4e5968;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+.member-grid input { min-width: 0; }
+
 /* 台幣換算：判斷值不值得時腦中是台幣，但它是輔助，不能蓋過日幣本身。 */
 .shopping-summary .twd { margin-top: 3px; color: #5b7f9e; font-size: 12px; font-weight: 700; }
 .split-row b i { display: block; margin-top: 1px; color: var(--muted-2); font-size: 11px; font-style: normal; font-weight: 700; }

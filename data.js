@@ -104,7 +104,7 @@ reservations:[
 tips:[
 ['排隊前先問能不能 4 人同桌','不要排 30 分鐘才發現只能拆兩桌。'],
 ['過敏與忌口先寫成日文','存在手機備忘錄直接給店員看，比現場比手畫腳快。'],
-['連假熱門店排更久','9/21–9/23 是三連假，超過 20 分鐘的隊就換下一家。']],
+['連假熱門店排更久','你們的 9/21–9/23 落在 9/19 起的五連休裡，超過 20 分鐘的隊就換下一家。']],
 allergyCard:'アレルギーがあります。◯◯ が食べられません。この料理に入っていますか？'},
 
 // ─────────── 應急 ───────────
@@ -238,7 +238,7 @@ days:[
 {time:'13:20',type:'flight',title:'KIX T2 抵達',desc:'Peach 在第 2 航廈。Visit Japan Web 先做好，領完行李直接進城。',note:'T2 到巴士站這段沒有 IC 卡販賣點，今天不需要卡也沒關係。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport+Terminal+2','map']]},
 {time:'15:15 決定',type:'transport',title:'趕得上就搭 15:32 直達巴士',desc:'15:15 前已領到行李並往 T2 巴士站移動才保留直達；否則不要追車。',status:'decision',statusLabel:'切換點',note:'切到 16:32 的話，後面整條要跟著縮：17:46 上本町、計程車到飯店約 18:05–18:20，17:20 check-in 已經不可能。今晚第一個被砍的是 PARCO——先縮成 60 分鐘，19:30 前往道頓堀；若 18:45 之後才進飯店就整段砍掉，直接去吃飯。道頓堀不砍。',transport:{head:'KIX T2 → 心齋橋 Hotel Nikko',fare:'¥1,800 / 人',steps:['到第 2 航廈巴士乘車處，先買「近鉄上本町・心斎橋」車票。','15:32 T2 發車 → 16:59 Hotel Nikko Osaka 下車。','下車後步行約 10–15 分鐘到捷絲旅；不想拖箱就 4 人叫短程計程車。','未達 15:15 條件：改搭 16:32 T2 → 17:46 上本町，再分攤計程車到飯店。']},actions:[['官方時刻表','https://www.kate.co.jp/timetable/detail/UH/dep'],['導航到飯店','https://www.google.com/maps/dir/?api=1&origin=Kansai+International+Airport+Terminal+2&destination=Just+Sleep+Osaka+Shinsaibashi','route']]},
 {time:'17:20',type:'hotel',title:'捷絲旅 Check-in',desc:'前三晚固定住 Just Sleep Osaka Shinsaibashi。',note:'順便問清楚：早餐時間與地點、行李寄放規則、最近的便利商店。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Just+Sleep+Osaka+Shinsaibashi','map']]},
-{time:'18:00–20:00',type:'shopping',gapNote:'進房、梳洗',title:'心齋橋 PARCO＋心齋橋筋',desc:'先處理服飾、潮流、簡單購物。',status:'optional',statusLabel:'D1 第一個砍',note:'今天是敬老日連假第一天，商店街會比平常擠，別急著逛完。班機或巴士延誤時，這一站就是第一個縮短或砍掉的——服飾在 D2 的美國村還有一輪。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Shinsaibashi+PARCO','map']]},
+{time:'18:00–20:00',type:'shopping',gapNote:'進房、梳洗',title:'心齋橋 PARCO＋心齋橋筋',desc:'先處理服飾、潮流、簡單購物。',status:'optional',statusLabel:'D1 第一個砍',note:'今天是敬老日，也是 9/19 起五連休的第三天，商店街會比平常擠，別急著逛完。班機或巴士延誤時，這一站就是第一個縮短或砍掉的——服飾在 D2 的美國村還有一輪。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Shinsaibashi+PARCO','map']]},
 {time:'20:00–21:45',type:'food',title:'道頓堀＋拉麵＋第一輪藥妝',desc:'第一晚吃簡單。吃完順路把想買的藥妝先掃第一輪，不要全部壓到 D2 最後那一段。',note:'今晚全程步行可到，沒有交通卡也不影響。道頓堀的 Donki 是 24 小時營業，吃飽後再逛也來得及。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Dotonbori+Osaka','map']]}]},
 
 {id:'d2',no:'DAY 2',date:'9/22（二）',title:'大阪購物主日＋燒肉',image:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Namba-Yasaka-Shrine-lions_head_theater.jpg/1280px-Namba-Yasaka-Shrine-lions_head_theater.jpg',alt:'難波八阪神社巨大獅子殿',items:[

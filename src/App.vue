@@ -15,7 +15,20 @@ const IDEA_CATEGORY = {
   drug: '藥妝 / 日用品', beauty: '藥妝 / 日用品', osaka: '伴手禮',
   kyoto: '伴手禮', usj: 'USJ', anime: '動漫 / 模型', tech: '3C / 相機'
 }
-const shoppingOwners = ['共用', '成員 1', '成員 2', '成員 3', '成員 4']
+/*
+ * 歸屬存 id 不存名字：改暱稱時既有的支出才不會全部掉回「共用」。
+ * 舊備份與舊 localStorage 存的是顯示字串，讀進來時對照過去。
+ */
+const MEMBER_IDS = ['m1', 'm2', 'm3', 'm4']
+const SHARED = 'shared'
+const OWNER_IDS = [SHARED, ...MEMBER_IDS]
+const LEGACY_OWNERS = { '共用': SHARED, '成員 1': 'm1', '成員 2': 'm2', '成員 3': 'm3', '成員 4': 'm4' }
+const defaultMemberName = (id) => `成員 ${MEMBER_IDS.indexOf(id) + 1}`
+const memberNames = reactive(Object.fromEntries(MEMBER_IDS.map(id => [id, defaultMemberName(id)])))
+const membersKey = 'osaka_2026_members'
+const ownerLabel = (id) => (id === SHARED ? '共用' : memberNames[id] || defaultMemberName(id))
+const ownerOptions = computed(() => OWNER_IDS.map(id => ({ id, label: ownerLabel(id) })))
+const normalizeOwner = (value) => (OWNER_IDS.includes(value) ? value : LEGACY_OWNERS[value] || SHARED)
 const shoppingStorageKey = 'osaka_2026_shopping_entries'
 const shoppingBudgetKey = 'osaka_2026_shopping_budget'
 const emergencyStorageKey = 'osaka_2026_emergency_info'
@@ -33,7 +46,7 @@ const checks = reactive({})
 const shoppingEntries = ref([])
 // 空字串而不是 0：欄位標示「可不填」，顯示 0 會讓人以為已經填過。
 const shoppingBudget = ref('')
-const shoppingDraft = reactive({ name: '', category: shoppingCategories[0], owner: shoppingOwners[0], price: '', quantity: 1 })
+const shoppingDraft = reactive({ name: '', category: shoppingCategories[0], owner: SHARED, price: '', quantity: 1 })
 const shoppingError = ref('')
 const dataMessage = ref('')
 const fileInput = ref(null)
@@ -56,17 +69,17 @@ const groupDoneCount = (items) => items.filter(([key]) => checks[key]).length
 const groupDone = (items) => groupDoneCount(items) === items.length
 const shoppingTotal = computed(() => shoppingEntries.value.reduce((total, item) => total + lineTotal(item), 0))
 const shoppingSharedTotal = computed(() => shoppingEntries.value.reduce((total, item) => (
-  item.owner === '共用' ? total + lineTotal(item) : total
+  item.owner === SHARED ? total + lineTotal(item) : total
 ), 0))
 const shoppingAverage = computed(() => shoppingSharedTotal.value / 4)
 const shoppingRemaining = computed(() => Math.max(0, Number(shoppingBudget.value) || 0) - shoppingTotal.value)
 const shoppingSplit = computed(() => {
   const perShared = shoppingSharedTotal.value / 4
-  return shoppingOwners.slice(1).map(owner => {
+  return MEMBER_IDS.map(id => {
     const own = shoppingEntries.value.reduce((total, item) => (
-      item.owner === owner ? total + lineTotal(item) : total
+      item.owner === id ? total + lineTotal(item) : total
     ), 0)
-    return { owner, own, shared: perShared, total: own + perShared }
+    return { id, name: ownerLabel(id), own, shared: perShared, total: own + perShared }
   })
 })
 
@@ -256,6 +269,28 @@ const formatTwd = (yen) => {
   return `≈ NT$${new Intl.NumberFormat('zh-TW').format(Math.round((Number(yen) || 0) * rate))}`
 }
 
+// 名字留空就退回「成員 N」，不然分帳會出現一列沒有標題的金額。
+const setMemberNames = (source) => {
+  MEMBER_IDS.forEach(id => {
+    const value = typeof source?.[id] === 'string' ? source[id].trim().slice(0, 12) : ''
+    memberNames[id] = value || defaultMemberName(id)
+  })
+}
+
+const persistMembers = () => {
+  try { localStorage.setItem(membersKey, JSON.stringify(memberNames)) } catch {}
+}
+
+// 清空欄位就當作恢復預設，不要讓分帳出現沒有名字的一列。
+const commitMemberName = (id) => {
+  memberNames[id] = String(memberNames[id] || '').trim().slice(0, 12) || defaultMemberName(id)
+  persistMembers()
+}
+
+const loadMembers = () => {
+  try { setMemberNames(JSON.parse(localStorage.getItem(membersKey) || '{}')) } catch { setMemberNames({}) }
+}
+
 const persistShopping = () => {
   try {
     localStorage.setItem(shoppingStorageKey, JSON.stringify(shoppingEntries.value))
@@ -275,7 +310,7 @@ const loadShopping = () => {
         id: String(item.id || `${Date.now()}-${Math.random()}`),
         name: item.name.slice(0, 80),
         category: shoppingCategories.includes(item.category) ? item.category : '其他',
-        owner: shoppingOwners.includes(item.owner) ? item.owner : '共用',
+        owner: normalizeOwner(item.owner),
         price: Math.max(0, Number(item.price) || 0),
         quantity: Math.min(99, Math.max(1, Number(item.quantity) || 1))
       }))
@@ -333,6 +368,7 @@ const buildDataExport = () => ({
   version: 1,
   exportedAt: new Date().toISOString(),
   checks: Object.fromEntries(checklistItems.value.map(([key]) => [key, !!checks[key]])),
+  members: { ...memberNames },
   shopping: { budget: Math.max(0, Number(shoppingBudget.value) || 0), entries: shoppingEntries.value },
   emergency: { ...emergencyInfo },
   dayNotes: { ...dayNotes }
@@ -359,13 +395,16 @@ const importData = async (event) => {
     const parsed = JSON.parse(await file.text())
     if (!parsed || typeof parsed !== 'object' || typeof parsed.checks !== 'object') throw new Error('invalid')
     checklistItems.value.forEach(([key]) => updateCheck(key, parsed.checks[key] === true))
+    // 先套名字再讀支出：歸屬存的是 id，兩者順序不影響對應。
+    setMemberNames(parsed.members)
+    persistMembers()
     const shopping = parsed.shopping || {}
     shoppingBudget.value = Math.max(0, Number(shopping.budget) || 0) || ''
     shoppingEntries.value = Array.isArray(shopping.entries) ? shopping.entries.map(item => ({
       id: String(item.id || `${Date.now()}-${Math.random()}`),
       name: String(item.name || '').trim().slice(0, 80),
       category: shoppingCategories.includes(item.category) ? item.category : '其他',
-      owner: shoppingOwners.includes(item.owner) ? item.owner : '共用',
+      owner: normalizeOwner(item.owner),
       price: Math.max(0, Number(item.price) || 0),
       quantity: Math.min(99, Math.max(1, Number(item.quantity) || 1))
     })).filter(item => item.name) : []
@@ -379,7 +418,7 @@ const importData = async (event) => {
     persistShopping()
     persistEmergencyInfo()
     try { localStorage.setItem(dayNotesKey, JSON.stringify(dayNotes)) } catch {}
-    dataMessage.value = '已匯入備份，Checklist、購物、筆記與緊急資訊都已更新。'
+    dataMessage.value = '已匯入備份，Checklist、成員、支出、筆記與緊急資訊都已更新。'
   } catch {
     dataMessage.value = '匯入失敗，請選擇這個網站匯出的 JSON 備份檔。'
   }
@@ -421,7 +460,7 @@ const addShoppingItem = () => {
     quantity
   })
   shoppingDraft.name = ''
-  shoppingDraft.owner = shoppingOwners[0]
+  shoppingDraft.owner = SHARED
   shoppingDraft.price = ''
   shoppingDraft.quantity = 1
   shoppingError.value = ''
@@ -530,6 +569,7 @@ const prepareTextLayout = async () => {
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search)
   loadChecks()
+  loadMembers()
   loadShopping()
   loadEmergencyInfo()
   loadDayNotes()
@@ -931,10 +971,24 @@ onBeforeUnmount(() => {
           </div>
           <p v-if="shoppingBudget" class="shopping-remaining" :class="{ over: shoppingTotal > shoppingBudget }">{{ shoppingTotal > shoppingBudget ? '已超過預算' : '預算剩餘' }} <strong>{{ formatYen(shoppingRemaining) }}</strong></p>
 
+          <!-- 出發前設定一次就好，所以收起來；選歸屬時看到的是真名而不是「成員 3」。 -->
+          <details class="shopping-more member-editor">
+            <summary>
+              <span>成員名稱</span>
+              <small>{{ MEMBER_IDS.map(ownerLabel).join('、') }}</small>
+            </summary>
+            <div class="shopping-more-body member-grid">
+              <label v-for="(id, index) in MEMBER_IDS" :key="id">
+                <span>{{ index + 1 }}</span>
+                <input v-model="memberNames[id]" type="text" maxlength="12" autocomplete="off" :placeholder="`成員 ${index + 1}`" @change="commitMemberName(id)" />
+              </label>
+            </div>
+          </details>
+
           <div v-if="shoppingEntries.length" class="split-table">
             <p class="split-caption">每個人實際要付</p>
-            <div v-for="row in shoppingSplit" :key="row.owner" class="split-row">
-              <strong>{{ row.owner }}</strong>
+            <div v-for="row in shoppingSplit" :key="row.id" class="split-row">
+              <strong>{{ row.name }}</strong>
               <span>個人 {{ formatYen(row.own) }} ＋ 共用 {{ formatYen(row.shared) }}</span>
               <b>{{ formatYen(row.total) }}<i>{{ formatTwd(row.total) }}</i></b>
             </div>
@@ -947,11 +1001,11 @@ onBeforeUnmount(() => {
             <details class="shopping-more">
               <summary>
                 <span>分類、歸屬、數量</span>
-                <small>{{ shoppingDraft.category }} · {{ shoppingDraft.owner }} · ×{{ shoppingDraft.quantity }}</small>
+                <small>{{ shoppingDraft.category }} · {{ ownerLabel(shoppingDraft.owner) }} · ×{{ shoppingDraft.quantity }}</small>
               </summary>
               <div class="shopping-more-body">
                 <label><span>分類</span><select v-model="shoppingDraft.category"><option v-for="category in shoppingCategories" :key="category" :value="category">{{ category }}</option></select></label>
-                <label><span>歸屬</span><select v-model="shoppingDraft.owner"><option v-for="owner in shoppingOwners" :key="owner" :value="owner">{{ owner }}</option></select></label>
+                <label><span>歸屬</span><select v-model="shoppingDraft.owner"><option v-for="o in ownerOptions" :key="o.id" :value="o.id">{{ o.label }}</option></select></label>
                 <label><span>數量</span><input v-model="shoppingDraft.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" /></label>
               </div>
             </details>
@@ -964,7 +1018,7 @@ onBeforeUnmount(() => {
               <div class="shopping-entry-topline"><span>{{ item.category }}</span><button type="button" :aria-label="`刪除 ${item.name}`" @click="removeShoppingItem(item.id)">刪除</button></div>
               <label class="entry-name"><span>品名</span><input v-model.trim="item.name" type="text" maxlength="80" @input="persistShopping" /></label>
               <div class="entry-numbers">
-                <label><span>歸屬</span><select v-model="item.owner" @change="persistShopping"><option v-for="owner in shoppingOwners" :key="owner" :value="owner">{{ owner }}</option></select></label>
+                <label><span>歸屬</span><select v-model="item.owner" @change="persistShopping"><option v-for="o in ownerOptions" :key="o.id" :value="o.id">{{ o.label }}</option></select></label>
                 <label><span>單價</span><input v-model.number="item.price" type="number" min="0" step="1" inputmode="numeric" @input="persistShopping" /></label>
                 <label><span>數量</span><input v-model.number="item.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" @input="persistShopping" /></label>
                 <output><span>小計</span><strong>{{ formatYen(lineTotal(item)) }}</strong></output>

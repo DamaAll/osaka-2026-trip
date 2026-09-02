@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
 const widths = [375, 390, 430]
@@ -556,9 +557,9 @@ test('split covers shared expenses and shows TWD', async ({ page }) => {
 
   await page.getByLabel('項目', { exact: true }).fill('燒肉 ソウル')
   await page.getByLabel('金額（日幣）').fill('16000')
-  await page.locator('.shopping-more summary').click()
+  await page.locator('.shopping-form .shopping-more summary').click()
   // 這裡不能用 getByLabel：select 的 label 文字含所有 option，比對不到。
-  await page.locator('.shopping-more-body select').first().selectOption('餐費')
+  await page.locator('.shopping-form .shopping-more-body select').first().selectOption('餐費')
   await page.getByRole('button', { name: '加入', exact: true }).click()
 
   await expect(page.locator('.shopping-entry')).toHaveCount(1)
@@ -579,6 +580,65 @@ test('split covers shared expenses and shows TWD', async ({ page }) => {
   await expect(page.locator('.shopping-summary > div').first().locator('.twd')).toHaveText('≈ NT$4,000')
 })
 
+/*
+ * 改暱稱最容易壞的地方是既有支出的歸屬：如果存的是顯示字串，改名就等於
+ * 把那筆錢算到別人頭上。這裡先記一筆再改名，確認金額還在同一個人身上。
+ */
+test('renaming a member keeps their existing expenses', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'money')
+
+  await page.locator('.member-editor summary').click()
+  const names = page.locator('.member-grid input')
+  await names.nth(0).fill('阿哲')
+  await names.nth(0).blur()
+
+  // 記一筆掛在成員 2 身上的個人支出。
+  await page.getByLabel('項目', { exact: true }).fill('扭蛋')
+  await page.getByLabel('金額（日幣）').fill('2000')
+  await page.locator('.shopping-form .shopping-more summary').click()
+  await page.locator('.shopping-form .shopping-more-body select').nth(1).selectOption({ label: '成員 2' })
+  await page.getByRole('button', { name: '加入', exact: true }).click()
+
+  const rows = page.locator('.split-row')
+  await expect(rows.nth(0).locator('strong')).toHaveText('阿哲')
+  await expect(rows.nth(1).locator('b')).toContainText('¥2,000')
+
+  // 改名之後，那 ¥2,000 必須還在同一列，不能掉回共用。
+  await names.nth(1).fill('小美')
+  await names.nth(1).blur()
+  await expect(rows.nth(1).locator('strong')).toHaveText('小美')
+  await expect(rows.nth(1).locator('b')).toContainText('¥2,000')
+  await expect(rows.nth(0).locator('b')).toContainText('¥0')
+
+  // 重整後名字和歸屬都要還在。
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.getByRole('tab', { name: /花費/ }).click()
+  await expect(page.locator('.split-row').nth(1).locator('strong')).toHaveText('小美')
+  await expect(page.locator('.split-row').nth(1).locator('b')).toContainText('¥2,000')
+})
+
+// 換手機時名字要跟著備份走，不然分帳整張表又變回「成員 N」。
+test('member names travel with the backup', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'money')
+
+  await page.locator('.member-editor summary').click()
+  await page.locator('.member-grid input').nth(2).fill('阿凱')
+  await page.locator('.member-grid input').nth(2).blur()
+
+  // 讀真正被下載的那份 JSON，而不是 localStorage——備份漏欄位才是要抓的問題。
+  // 備份工具在「準備」分頁。
+  await page.getByRole('tab', { name: /準備/ }).click()
+  await page.locator('.fold', { hasText: '換手機或給同行者用' }).locator('summary').click()
+  const download = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: '匯出備份' }).click()
+  ]).then(([d]) => d)
+  const backup = JSON.parse(await readFile(await download.path(), 'utf8'))
+  expect(backup.members.m3).toBe('阿凱')
+})
+
 // 在店裡看到想買的，直接帶進分帳表單，不用把品名再打一次。
 test('an idea from the buy tab lands in the split form', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
@@ -591,8 +651,8 @@ test('an idea from the buy tab lands in the split form', async ({ page }) => {
   // 跳到花費分頁，品名與分類都帶好了，只剩金額要填。
   await expect(page).toHaveURL(/view=money/)
   await expect(page.getByLabel('項目', { exact: true })).toHaveValue('休足時間')
-  await page.locator('.shopping-more summary').click()
-  await expect(page.locator('.shopping-more-body select').first()).toHaveValue('藥妝 / 日用品')
+  await page.locator('.shopping-form .shopping-more summary').click()
+  await expect(page.locator('.shopping-form .shopping-more-body select').first()).toHaveValue('藥妝 / 日用品')
 
   await page.getByLabel('金額（日幣）').fill('800')
   await page.getByRole('button', { name: '加入', exact: true }).click()
@@ -709,7 +769,7 @@ test('shopping calculator updates totals, split and persists user items', async 
   await page.getByLabel('項目', { exact: true }).fill('USJ 瑪利歐帽')
   await page.getByLabel('金額（日幣）').fill('1200')
   // 數量收在進階欄位裡，預設 1；要改才需要打開。
-  await page.locator('.shopping-more summary').click()
+  await page.locator('.shopping-form .shopping-more summary').click()
   await page.getByLabel('數量', { exact: true }).fill('2')
   await page.getByRole('button', { name: '加入', exact: true }).click()
 
