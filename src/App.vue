@@ -620,7 +620,7 @@ onBeforeUnmount(() => {
       <template v-if="activeView === 'itinerary'">
         <section class="notice-card">
           <div class="notice-icon">!</div>
-          <div><strong>9/21–9/23 日本連續假期</strong><span>9/21 敬老日、9/22 國民休日、9/23 秋分日。這三天大阪與京都都會明顯更擠。</span></div>
+          <div><strong>9/19–9/23 是 11 年來首次的 5 天 Silver Week</strong><span>9/21 敬老日、9/22 國民休日、9/23 秋分日，加上前面的週末連成五天。你們 9/21 落地時是連假第三天，大阪、京都與交通都會比一般連假更擠；9/23 是連假最後一天，回程人潮最多。</span></div>
         </section>
 
         <section class="content-section command-section decision-section" aria-labelledby="decision-title">
