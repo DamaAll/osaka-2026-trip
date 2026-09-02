@@ -369,6 +369,23 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .shopping-summary strong { font-size: 23px; line-height: 1.1; letter-spacing: -.04em; overflow-wrap: anywhere; }
 .shopping-summary span { margin-top: 6px; color: #6182a1; font-size: 11px; }
 
+/* 台幣換算：判斷值不值得時腦中是台幣，但它是輔助，不能蓋過日幣本身。 */
+.shopping-summary .twd { margin-top: 3px; color: #5b7f9e; font-size: 12px; font-weight: 700; }
+.split-row b i { display: block; margin-top: 1px; color: var(--muted-2); font-size: 11px; font-style: normal; font-weight: 700; }
+.money-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.money-fields label { display: block; min-width: 0; }
+.money-fields label > span { display: block; margin-bottom: 5px; color: #4e5968; font-size: 11px; font-weight: 800; }
+.money-fields input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #dce4ee;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 15px;
+}
+.money-fields input:focus-visible { outline: 3px solid rgba(10,109,240,.28); outline-offset: 1px; }
+
 /* 進階欄位收起來：店裡單手只填品名和價錢，其餘用預設值。 */
 .shopping-more { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
 .shopping-more > summary {
@@ -727,9 +744,32 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
  * 商業攝影，自由授權資料庫沒有收錄，外連購物網站則會被擋且網址隨時失效。
  * 純文字同時讓這一頁在日本沒訊號時也完整可讀。
  */
-/* 伴手禮清單：品名 + 為什麼被推薦 */
+/* 伴手禮清單：品名 + 為什麼被推薦 + 直接記帳 */
 .buy-list { display: grid; gap: 8px; }
-.buy-list article { padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
+.buy-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.buy-copy { min-width: 0; }
+.buy-add {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #cfe2fb;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--blue-deep);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.buy-add:active { background: var(--blue-soft); }
 .buy-list strong { display: block; font-size: 13px; line-height: 1.4; }
 .buy-list p { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
 

@@ -8,11 +8,18 @@ const trip = tripData || { quickLinks: [], costs: [], days: [], checklist: [] }
 const navLabels = ['抵達', '購物', '京都', 'USJ', '回台']
 const quickMarks = ['SIM', 'VJW', '役', 'USJ']
 const views = ['itinerary', 'prep', 'money', 'buy', 'safety']
-const shoppingCategories = ['藥妝 / 日用品', '動漫 / 模型', '3C / 相機', '服飾 / 鞋', '伴手禮', 'USJ', '其他']
+// 分帳不能只算購物：4 人一起吃的燒肉、分攤的計程車，金額比多數購物大。
+const shoppingCategories = ['餐費', '交通', '藥妝 / 日用品', '動漫 / 模型', '3C / 相機', '服飾 / 鞋', '伴手禮', 'USJ', '其他']
+// 「買什麼」分頁的分類對應到這裡，從想買清單帶入時不用再選一次。
+const IDEA_CATEGORY = {
+  drug: '藥妝 / 日用品', beauty: '藥妝 / 日用品', osaka: '伴手禮',
+  kyoto: '伴手禮', usj: 'USJ', anime: '動漫 / 模型', tech: '3C / 相機'
+}
 const shoppingOwners = ['共用', '成員 1', '成員 2', '成員 3', '成員 4']
 const shoppingStorageKey = 'osaka_2026_shopping_entries'
 const shoppingBudgetKey = 'osaka_2026_shopping_budget'
 const emergencyStorageKey = 'osaka_2026_emergency_info'
+const rateStorageKey = 'osaka_2026_twd_rate'
 const dayNotesKey = 'osaka_2026_day_notes'
 const tripStart = new Date('2026-09-21T00:00:00+09:00')
 const tripEnd = new Date('2026-09-26T00:00:00+09:00')
@@ -228,6 +235,27 @@ const resetChecklist = () => {
 
 const formatYen = (amount) => `¥${new Intl.NumberFormat('ja-JP').format(Math.round(Number(amount) || 0))}`
 
+/*
+ * 判斷「這個值不值得」的時候腦中是台幣，每天要換算很多次。
+ * 匯率讓使用者自己設：寫死的數字到了 9 月一定不準，而且離線時抓不到即時匯率。
+ */
+const twdRate = ref(0.22)
+const loadRate = () => {
+  const stored = Number(localStorage.getItem(rateStorageKey))
+  if (Number.isFinite(stored) && stored > 0) twdRate.value = stored
+}
+const persistRate = () => {
+  const value = Number(twdRate.value)
+  if (Number.isFinite(value) && value > 0) {
+    try { localStorage.setItem(rateStorageKey, String(value)) } catch {}
+  }
+}
+const formatTwd = (yen) => {
+  const rate = Number(twdRate.value)
+  if (!Number.isFinite(rate) || rate <= 0) return ''
+  return `≈ NT$${new Intl.NumberFormat('zh-TW').format(Math.round((Number(yen) || 0) * rate))}`
+}
+
 const persistShopping = () => {
   try {
     localStorage.setItem(shoppingStorageKey, JSON.stringify(shoppingEntries.value))
@@ -400,13 +428,26 @@ const addShoppingItem = () => {
   persistShopping()
 }
 
+// 在店裡看到想買的，直接帶進表單填價錢，不用再把品名打一次。
+const priceInput = ref(null)
+const addFromIdea = async (name, groupKey) => {
+  shoppingDraft.name = name
+  shoppingDraft.category = IDEA_CATEGORY[groupKey] || '其他'
+  shoppingDraft.price = ''
+  shoppingError.value = ''
+  await switchView('money')
+  await nextTick()
+  priceInput.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  priceInput.value?.focus()
+}
+
 const removeShoppingItem = (id) => {
   shoppingEntries.value = shoppingEntries.value.filter(item => item.id !== id)
   persistShopping()
 }
 
 const clearShopping = () => {
-  if (!shoppingEntries.value.length || !window.confirm('要清除全部購物項目嗎？')) return
+  if (!shoppingEntries.value.length || !window.confirm('要清除全部支出紀錄嗎？')) return
   shoppingEntries.value = []
   persistShopping()
 }
@@ -492,6 +533,7 @@ onMounted(async () => {
   loadShopping()
   loadEmergencyInfo()
   loadDayNotes()
+  loadRate()
   clockTimer = setInterval(() => { now.value = new Date() }, 60000)
   /*
    * 旅行中直接用收合版。完整 hero 佔首屏 47%，而收合條已經帶著同樣的焦點資訊；
@@ -875,15 +917,18 @@ onBeforeUnmount(() => {
 
         <section class="content-section shopping-builder" aria-labelledby="shopping-title">
           <div class="section-title-row shopping-title-row">
-            <div><p class="section-kicker">SHOPPING</p><h2 id="shopping-title">購物與分帳</h2><p class="section-caption">自行新增品項；標「共用」的會平均分給 4 個人。</p></div>
+            <div><p class="section-kicker">SPLIT</p><h2 id="shopping-title">支出與分帳</h2><p class="section-caption">吃飯、計程車、購物都記在這裡；標「共用」的會平均分給 4 個人。</p></div>
             <button class="text-button" type="button" :disabled="!shoppingEntries.length" @click="clearShopping">全部清除</button>
           </div>
 
           <div class="shopping-summary">
-            <div><small>目前總額</small><strong>{{ formatYen(shoppingTotal) }}</strong><span>{{ shoppingEntries.length }} 個品項</span></div>
-            <div><small>共用平均</small><strong>{{ formatYen(shoppingAverage) }}</strong><span>共用品項 ÷ 4</span></div>
+            <div><small>目前總額</small><strong>{{ formatYen(shoppingTotal) }}</strong><span class="twd">{{ formatTwd(shoppingTotal) }}</span><span>{{ shoppingEntries.length }} 筆</span></div>
+            <div><small>共用平均</small><strong>{{ formatYen(shoppingAverage) }}</strong><span class="twd">{{ formatTwd(shoppingAverage) }}</span><span>共用項目 ÷ 4</span></div>
           </div>
-          <label class="shopping-budget"><span>購物預算上限（日幣，可不填）</span><input v-model.number="shoppingBudget" type="number" min="0" step="100" inputmode="numeric" placeholder="例如：60000" @input="persistShopping" /></label>
+          <div class="money-fields">
+            <label><span>預算上限（日幣，可不填）</span><input v-model.number="shoppingBudget" type="number" min="0" step="100" inputmode="numeric" placeholder="例如：60000" @input="persistShopping" /></label>
+            <label><span>匯率：1 日圓 = ? 台幣</span><input v-model.number="twdRate" type="number" min="0" step="0.001" inputmode="decimal" placeholder="0.22" @input="persistRate" /></label>
+          </div>
           <p v-if="shoppingBudget" class="shopping-remaining" :class="{ over: shoppingTotal > shoppingBudget }">{{ shoppingTotal > shoppingBudget ? '已超過預算' : '預算剩餘' }} <strong>{{ formatYen(shoppingRemaining) }}</strong></p>
 
           <div v-if="shoppingEntries.length" class="split-table">
@@ -891,14 +936,14 @@ onBeforeUnmount(() => {
             <div v-for="row in shoppingSplit" :key="row.owner" class="split-row">
               <strong>{{ row.owner }}</strong>
               <span>個人 {{ formatYen(row.own) }} ＋ 共用 {{ formatYen(row.shared) }}</span>
-              <b>{{ formatYen(row.total) }}</b>
+              <b>{{ formatYen(row.total) }}<i>{{ formatTwd(row.total) }}</i></b>
             </div>
           </div>
 
           <form class="shopping-form" @submit.prevent="addShoppingItem">
             <!-- 店裡單手輸入只需要品名和價錢；分類、歸屬、數量有預設值，收在下面。 -->
-            <label class="field-name"><span>品名</span><input v-model="shoppingDraft.name" type="text" maxlength="80" autocomplete="off" placeholder="例如：USJ 瑪利歐帽" /></label>
-            <label class="field-price"><span>單價（日幣）</span><input v-model="shoppingDraft.price" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+            <label class="field-name"><span>項目</span><input v-model="shoppingDraft.name" type="text" maxlength="80" autocomplete="off" placeholder="例如：燒肉、計程車、瑪利歐帽" /></label>
+            <label class="field-price"><span>金額（日幣）</span><input ref="priceInput" v-model="shoppingDraft.price" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
             <details class="shopping-more">
               <summary>
                 <span>分類、歸屬、數量</span>
@@ -910,7 +955,7 @@ onBeforeUnmount(() => {
                 <label><span>數量</span><input v-model="shoppingDraft.quantity" type="number" min="1" max="99" step="1" inputmode="numeric" /></label>
               </div>
             </details>
-            <button class="add-shopping-button" type="submit">加入購物清單</button>
+            <button class="add-shopping-button" type="submit">加入</button>
           </form>
           <p v-if="shoppingError" class="shopping-error" role="alert">{{ shoppingError }}</p>
 
@@ -926,7 +971,7 @@ onBeforeUnmount(() => {
               </div>
             </article>
           </div>
-          <div v-else class="shopping-empty"><strong>還沒有購物項目</strong><span>先從上方輸入第一個想買的東西。</span></div>
+          <div v-else class="shopping-empty"><strong>還沒有任何支出</strong><span>吃飯、計程車、購物都可以記在這裡。</span></div>
         </section>
       </template>
 
@@ -957,7 +1002,9 @@ onBeforeUnmount(() => {
               <p v-if="group.note" class="fold-warning">{{ group.note }}</p>
               <div class="buy-list">
                 <article v-for="([name, desc]) in group.items" :key="name">
-                  <strong>{{ name }}</strong><p>{{ desc }}</p>
+                  <div class="buy-copy"><strong>{{ name }}</strong><p>{{ desc }}</p></div>
+                  <!-- 買了直接帶進分帳表單填金額，不用在店裡把品名再打一次。 -->
+                  <button type="button" class="buy-add" :aria-label="`把 ${name} 加入分帳`" @click="addFromIdea(name, group.key)">記帳</button>
                 </article>
               </div>
             </div>

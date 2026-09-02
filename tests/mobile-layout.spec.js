@@ -156,7 +156,7 @@ test('money view carries budget, tickets and per-person split', async ({ page })
   await expect(page.getByText('¥30,000–40,000')).toBeVisible()
   await expect(page.getByRole('heading', { name: '門票與入場費' })).toBeVisible()
   await expect(page.getByText('Harukas 300 展望台')).toBeVisible()
-  await expect(page.getByRole('heading', { name: '購物與分帳' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
 
   await noHorizontalOverflow(page)
 })
@@ -544,6 +544,61 @@ test('every travel gap keeps a 1.5x buffer', async () => {
   expect(tight, '這些移動的緩衝不到 1.5 倍').toEqual([])
 })
 
+/*
+ * 分帳要涵蓋所有共同支出，不只購物：4 人一起吃的燒肉比多數購物貴。
+ * 台幣換算是每天要心算很多次的摩擦，匯率由使用者設定並記住。
+ */
+test('split covers shared expenses and shows TWD', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'money')
+
+  await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
+
+  await page.getByLabel('項目', { exact: true }).fill('燒肉 ソウル')
+  await page.getByLabel('金額（日幣）').fill('16000')
+  await page.locator('.shopping-more summary').click()
+  // 這裡不能用 getByLabel：select 的 label 文字含所有 option，比對不到。
+  await page.locator('.shopping-more-body select').first().selectOption('餐費')
+  await page.getByRole('button', { name: '加入', exact: true }).click()
+
+  await expect(page.locator('.shopping-entry')).toHaveCount(1)
+  const total = page.locator('.shopping-summary > div').first()
+  await expect(total.locator('strong')).toHaveText('¥16,000')
+  // 預設匯率 0.22：16000 × 0.22 = 3520
+  await expect(total.locator('.twd')).toHaveText('≈ NT$3,520')
+
+  // 共用平均分 4 份，每人 ¥4,000。
+  await expect(page.locator('.split-row').first().locator('b')).toContainText('¥4,000')
+  await expect(page.locator('.split-row').first().locator('b i')).toHaveText('≈ NT$880')
+
+  // 改匯率要立即反映，而且重新整理後還在。
+  await page.getByLabel(/匯率/).fill('0.25')
+  await expect(total.locator('.twd')).toHaveText('≈ NT$4,000')
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.getByRole('tab', { name: /花費/ }).click()
+  await expect(page.locator('.shopping-summary > div').first().locator('.twd')).toHaveText('≈ NT$4,000')
+})
+
+// 在店裡看到想買的，直接帶進分帳表單，不用把品名再打一次。
+test('an idea from the buy tab lands in the split form', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'buy')
+
+  const drug = page.locator('.fold', { hasText: '藥妝與常備藥' })
+  await drug.locator('summary').click()
+  await drug.getByRole('button', { name: '把 休足時間 加入分帳' }).click()
+
+  // 跳到花費分頁，品名與分類都帶好了，只剩金額要填。
+  await expect(page).toHaveURL(/view=money/)
+  await expect(page.getByLabel('項目', { exact: true })).toHaveValue('休足時間')
+  await page.locator('.shopping-more summary').click()
+  await expect(page.locator('.shopping-more-body select').first()).toHaveValue('藥妝 / 日用品')
+
+  await page.getByLabel('金額（日幣）').fill('800')
+  await page.getByRole('button', { name: '加入', exact: true }).click()
+  await expect(page.locator('.shopping-entry')).toHaveCount(1)
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
@@ -648,26 +703,26 @@ test('shopping calculator updates totals, split and persists user items', async 
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'money')
 
-  await expect(page.getByRole('heading', { name: '購物與分帳' })).toBeVisible()
-  await expect(page.getByText('還沒有購物項目')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '支出與分帳' })).toBeVisible()
+  await expect(page.getByText('還沒有任何支出')).toBeVisible()
 
-  await page.getByLabel('品名', { exact: true }).fill('USJ 瑪利歐帽')
-  await page.getByLabel('單價（日幣）').fill('1200')
+  await page.getByLabel('項目', { exact: true }).fill('USJ 瑪利歐帽')
+  await page.getByLabel('金額（日幣）').fill('1200')
   // 數量收在進階欄位裡，預設 1；要改才需要打開。
   await page.locator('.shopping-more summary').click()
   await page.getByLabel('數量', { exact: true }).fill('2')
-  await page.getByRole('button', { name: '加入購物清單' }).click()
+  await page.getByRole('button', { name: '加入', exact: true }).click()
 
   await expect(page.locator('.shopping-entry')).toHaveCount(1)
   await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥2,400')
 
   // 預設歸屬是「共用」，4 個人各分攤 1/4。
   await expect(page.locator('.split-row')).toHaveCount(4)
-  await expect(page.locator('.split-row').first().locator('b')).toHaveText('¥600')
+  await expect(page.locator('.split-row').first().locator('b')).toContainText('¥600')
 
   await page.locator('.shopping-entry input[type="number"]').first().fill('1500')
   await expect(page.locator('.shopping-summary > div').first().locator('strong')).toHaveText('¥3,000')
-  await expect(page.locator('.split-row').first().locator('b')).toHaveText('¥750')
+  await expect(page.locator('.split-row').first().locator('b')).toContainText('¥750')
 
   await noHorizontalOverflow(page)
 
