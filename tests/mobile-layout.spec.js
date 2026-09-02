@@ -321,8 +321,8 @@ test('during the trip the itinerary opens on today', async ({ page }) => {
   await expect(page.locator('#d1 .journey-item')).toHaveCount(0)
   await expect(page.locator('#d1 .day-expand')).toBeVisible()
 
-  // 13:00 落在「午餐 A / B / C＋祇園」(12:30–15:00)，下一站是錦市場。
-  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+  // 13:00 落在「午餐 A / B / C＋祇園」(12:30–14:50)，下一站是錦市場。
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–14:50')
   await expect(page.locator('#d3 .stop-next .journey-time')).toHaveText('15:15–16:15')
   await expect(page.locator('#d3 .flag-now')).toHaveText('現在')
 
@@ -402,7 +402,7 @@ test('back-to-now follows the current stop when time moves on', async ({ page })
   // 跨過 12:30，當前站應自動換成午餐那一段。
   // 用 runFor 而不是 fastForward：只有 runFor 會真的觸發每分鐘的 setInterval。
   await page.clock.runFor(120000)
-  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–14:50')
 
   /*
    * 關鍵：捲到「只有新的當前站在視野、舊的那站已離開」的位置。
@@ -486,14 +486,14 @@ test('gaps between stops say how long and what for', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page)
 
-  // 08:25–09:05 → 09:20：15 分，交通方式從下一站的交通卡推得。
+  // 08:25–09:00 → 09:20：20 分，交通方式從下一站的交通卡推得。
   const kuromon = page.locator('#d2-stop-2 .journey-gap')
-  await expect(kuromon.locator('b')).toHaveText('15 分')
+  await expect(kuromon.locator('b')).toHaveText('20 分')
   await expect(kuromon.locator('span')).toHaveText('步行')
 
   // 沒有交通卡的那些，改用 gapNote，且不重複分鐘數。
   const bic = page.locator('#d2-stop-5 .journey-gap')
-  await expect(bic.locator('b')).toHaveText('10 分')
+  await expect(bic.locator('b')).toHaveText('15 分')
   await expect(bic.locator('span')).toHaveText('走到難波')
 
   // 有車資的視為搭車，不要落到籠統的「移動」。
@@ -507,6 +507,43 @@ test('gaps between stops say how long and what for', async ({ page }) => {
   await expect(page.locator('#d4-stop-5 .journey-gap')).toHaveCount(0)
 })
 
+/*
+ * 每段移動都要留 1.5 倍緩衝。原本有兩段是 1.00 倍——給的時間剛好等於走路時間，
+ * 等於任何一點延誤都會直接推遲下一站。gapMinutes 是那段的預估移動時間，
+ * 站點時間一改這個測試就會抓到，不用再靠人工重算。
+ */
+test('every travel gap keeps a 1.5x buffer', async () => {
+  const { default: trip } = await import('../data.js?buffer=' + Date.now())
+  const toMin = (s) => {
+    const m = String(s).match(/^(\d{1,2}):(\d{2})/)
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null
+  }
+  const endOf = (item) => {
+    const range = String(item.time).match(/^(\d{1,2}:\d{2})[–-](\d{1,2}:\d{2})/)
+    return range ? toMin(range[2]) : toMin(item.time)
+  }
+
+  const tight = []
+  let checked = 0
+  for (const day of trip.days) {
+    day.items.forEach((item, index) => {
+      if (!item.gapMinutes || index === 0) return
+      const from = endOf(day.items[index - 1])
+      const to = toMin(item.time)
+      if (from === null || to === null) return
+      checked++
+      const gap = to - from
+      const ratio = gap / item.gapMinutes
+      if (ratio < 1.5) {
+        tight.push(`${day.no} ${item.title}：給 ${gap} 分，需 ${item.gapMinutes} 分（${ratio.toFixed(2)}x）`)
+      }
+    })
+  }
+
+  expect(checked).toBeGreaterThan(10)
+  expect(tight, '這些移動的緩衝不到 1.5 倍').toEqual([])
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
@@ -515,7 +552,7 @@ test('the current stop uses Japan time even on a Taipei phone', async ({ browser
   await openTrip(page)
 
   // 台北時間是 12:00，日本是 13:00。要落在 12:30 開始的那一站，不是前一站。
-  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–15:00')
+  await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–14:50')
   await context.close()
 })
 
