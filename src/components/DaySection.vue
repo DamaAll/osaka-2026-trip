@@ -30,6 +30,36 @@ const TYPE_LABEL = {
   rest: '休息', decision: '決策', hotel: '住宿', flight: '航班'
 }
 const typeLabel = (type) => TYPE_LABEL[type] || ''
+
+/*
+ * 站與站中間那段空白在時間軸上原本沒有任何交代，要點開下一張卡才知道是走路還是
+ * 搭車。分鐘數一律由時間算出來，不寫死，才不會跟站點時間對不上。
+ *
+ * 只在兩站都有真實 HH:mm 時計算：D4 園內那幾站用的是 progressTime（我推估的
+ * 錨點），拿它算出來的「間隔」是假的，不能顯示。
+ */
+const clockMinutes = (time) => {
+  const m = String(time).match(/^(\d{1,2}):(\d{2})/)
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null
+}
+const endMinutes = (item) => {
+  const range = String(item.time).match(/^(\d{1,2}:\d{2})[–-](\d{1,2}:\d{2})/)
+  return range ? clockMinutes(range[2]) : clockMinutes(item.time)
+}
+
+const gapBefore = (index) => {
+  if (index === 0) return null
+  const prev = props.day.items[index - 1]
+  const cur = props.day.items[index]
+  const from = endMinutes(prev)
+  const to = clockMinutes(cur.time)
+  if (from === null || to === null) return null
+  const minutes = to - from
+  // 超過一小時的多半是當下正在進行的活動，不是移動，標了反而誤導。
+  if (minutes <= 0 || minutes > 60) return null
+  const label = cur.gapNote || (cur.transport ? (cur.transport.fare || cur.transport.head) : '')
+  return { minutes, label }
+}
 const stopState = (index) => {
   if (!props.isToday) return ''
   if (index === props.currentItem) return 'now'
@@ -98,6 +128,10 @@ const stopState = (index) => {
         </div>
 
         <div class="journey-content">
+          <p v-if="gapBefore(index)" class="journey-gap">
+            <b>{{ gapBefore(index).minutes }} 分</b>
+            <span v-if="gapBefore(index).label">{{ gapBefore(index).label }}</span>
+          </p>
           <div class="journey-meta">
             <time class="journey-time">{{ item.time }}</time>
             <span v-if="stopState(index) === 'now'" class="stop-flag flag-now">現在</span>
@@ -492,6 +526,33 @@ const stopState = (index) => {
   line-height: 1.25;
   font-weight: 850;
   overflow-wrap: anywhere;
+}
+
+/* 站與站之間那段時間在做什麼。刻意做得比站點本身弱，掃讀時不搶注意力。 */
+.journey-gap {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0 0 10px;
+  color: #8a929c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.journey-gap b {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border: 1px dashed #d7dce2;
+  border-radius: 999px;
+  color: #6b7480;
+  font-weight: 800;
+}
+
+.journey-gap span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 分類保持灰色低調：它永遠都在，彩色要留給偶爾出現的 status。 */

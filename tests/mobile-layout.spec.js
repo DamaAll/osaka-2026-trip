@@ -477,6 +477,33 @@ test('a fully checked group collapses and can be reopened', async ({ page }) => 
   await expect(group.locator('.check-row').first()).toBeVisible()
 })
 
+/*
+ * 站與站中間的空白原本在時間軸上完全沒有交代。分鐘數必須由站點時間算出來，
+ * 不能寫死，否則改了時間就會對不上；而 D4 園內用 progressTime 推估的錨點
+ * 之間不是真的移動，算出來的間隔是假的，不能顯示。
+ */
+test('gaps between stops say how long and what for', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page)
+
+  // 08:25–09:05 → 09:20：15 分，且說明來自下一站的交通卡。
+  const kuromon = page.locator('#d2-stop-2 .journey-gap')
+  await expect(kuromon.locator('b')).toHaveText('15 分')
+  await expect(kuromon.locator('span')).toContainText('步行約 12 分鐘')
+
+  // 沒有交通卡的那些，改用 gapNote 說明。
+  const bic = page.locator('#d2-stop-5 .journey-gap')
+  await expect(bic.locator('b')).toHaveText('10 分')
+  await expect(bic.locator('span')).toContainText('日本橋走到難波')
+
+  // 每天第一站前面沒有空檔。
+  await expect(page.locator('#d2-stop-0 .journey-gap')).toHaveCount(0)
+
+  // 園內那幾站用 progressTime，不能生出假的間隔。
+  await expect(page.locator('#d4-stop-4 .journey-gap')).toHaveCount(0)
+  await expect(page.locator('#d4-stop-5 .journey-gap')).toHaveCount(0)
+})
+
 // 手機沒切時區是很常見的，行程時間一律以日本時間為準，不能跟著裝置跑。
 test('the current stop uses Japan time even on a Taipei phone', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' })
