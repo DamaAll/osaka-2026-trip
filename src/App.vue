@@ -1089,6 +1089,28 @@ onBeforeUnmount(() => {
           <p class="verified-tag">回饋條件查核於 {{ trip.cardDeals.checkedAt }}，出發前請再對一次官方頁</p>
         </section>
 
+        <section class="content-section" aria-labelledby="coupons-title">
+          <div class="section-title-row">
+            <div><p class="section-kicker">COUPONS</p><h2 id="coupons-title">優惠券</h2><p class="section-caption" data-pretext>{{ trip.coupons.caption }}</p></div>
+          </div>
+
+          <details v-for="shop in trip.coupons.items" :key="shop.key" class="fold">
+            <summary><strong>{{ shop.name }}</strong><small>{{ shop.where }} · {{ shop.save }}</small></summary>
+            <div class="fold-body">
+              <dl class="card-terms">
+                <template v-for="([label, value]) in shop.rows" :key="label">
+                  <dt>{{ label }}</dt><dd>{{ value }}</dd>
+                </template>
+              </dl>
+              <a class="action-link" :href="shop.url" target="_blank" rel="noopener">{{ shop.urlLabel }}</a>
+            </div>
+          </details>
+
+          <p class="fold-warning card-warning" data-pretext>{{ trip.coupons.warning }}</p>
+          <p class="card-tip" data-pretext>{{ trip.coupons.note }}</p>
+          <p class="verified-tag">優惠內容查核於 {{ trip.coupons.checkedAt }}，出發前再確認一次</p>
+        </section>
+
         <section class="content-section">
           <div class="section-title-row"><div><p class="section-kicker">BY DAY</p><h2>按你哪天會走到分</h2><p class="section-caption">平常收起來，逛到那一區再點開。</p></div></div>
           <details v-for="group in trip.souvenirs.groups" :key="group.key" class="fold">

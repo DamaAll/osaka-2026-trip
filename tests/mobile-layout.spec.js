@@ -764,6 +764,44 @@ test('the card section leads with what to use where, and dates itself', async ({
   expect(clipped).toEqual([])
 })
 
+/*
+ * 優惠券只列行程會走到的店，而且每家最容易白跑的那個條件要寫出來：
+ * Donki 不吃截圖、Joshin 的遊戲不能免税、Uniqlo 根本沒有觀光客折扣。
+ */
+test('coupons cover the shops on the route, with the catch spelled out', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'buy')
+
+  await expect(page.getByRole('heading', { name: '優惠券' })).toBeVisible()
+
+  const donki = page.locator('.fold', { hasText: '唐吉訶德' })
+  await donki.locator('summary').click()
+  await expect(donki.locator('.card-terms dd').filter({ hasText: /截圖無效/ })).toBeVisible()
+
+  // 優惠券沒有連結就等於要人自己去找，而 Donki 的券本來就得現場開頁面。
+  await expect(donki.locator('a.action-link')).toHaveAttribute('href', /donki\.com/)
+
+  const joshin = page.locator('.fold', { hasText: 'Joshin' })
+  await joshin.locator('summary').click()
+  await expect(joshin.locator('.card-terms dd').filter({ hasText: /一律不能免税/ })).toBeVisible()
+  // 第三方平台要標示出來，不能讓人以為是官方。
+  await expect(joshin.locator('a.action-link')).toContainText('第三方平台')
+
+  // 六家都要有可點的連結，少一個就是少一張券。
+  const links = page.locator('section:has(#coupons-title) .fold a.action-link')
+  await expect(links).toHaveCount(6)
+
+  // 免税制度 11 月才改，這趟不適用新制——不寫會被網路文章誤導。
+  await expect(page.getByText(/2026\/11\/1 起改成出境後退税/)).toBeVisible()
+  await expect(page.getByText(/優惠內容查核於 2026\/9\/3/)).toBeVisible()
+
+  // 摺疊裡不掛 data-pretext，關著時量不到寬度會讓文字溢出底色。
+  const clipped = await page.locator('.fold-body [data-pretext]').count()
+  expect(clipped).toBe(0)
+
+  await noHorizontalOverflow(page)
+})
+
 // 在店裡看到想買的，直接帶進分帳表單，不用把品名再打一次。
 test('an idea from the buy tab lands in the split form', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })

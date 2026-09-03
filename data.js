@@ -187,6 +187,44 @@ plan:[
 ['結帳一律選日幣','選台幣是 DCC，匯率明顯較差；而且吉鶴的 2.5% 規定帳單幣別要是日幣才算。']],
 warning:'吉鶴卡的 NT$15,000 門檻，官方只寫「單月一般消費」，沒說台灣國內消費算不算。算的話你們出國前可能就過門檻、在日本每筆都多 3%；不算的話要在日本先刷滿 15,000。另外「日本三大交通卡儲值 1.5%」是獨立活動，每月 15 日 10 點才開放登錄、限量 10,000 名——想拿要 9/15 之後補登錄。'},
 
+// ─────────── 優惠券（只列行程真的會走到的店）───────────
+coupons:{
+caption:'只列你們行程會走到的店。免税是店家在辦的，跟刷卡回饋各算各的，可以疊在同一筆。',
+checkedAt:'2026/9/3',
+items:[
+{key:'bic',name:'Bic Camera',where:'D2 下午',save:'免税 10%＋最多 7%',rows:[
+['折多少','家電、相機、手錶、玩具 7%；藥品、化妝品、日用品 5%；日本酒 3%'],
+['門檻','要走免税，而且單次税抜 ¥5,000 以上'],
+['怎麼拿','官方或 LiveJapan 等平台的優惠券頁，結帳前出示畫面'],
+['期限','現行券到 2026/12/31，涵蓋你們這趟']],
+urlLabel:'免税店官方券頁',url:'https://www.taxfreeshops.jp/ja/tieup/2'},
+{key:'donki',name:'唐吉訶德 Donki',where:'D1 晚上、D2 晚上',save:'免税 10%＋5～7%',rows:[
+['折多少','税抜 ¥10,000 以上 5%；¥30,000 以上 7%'],
+['會踩的雷','截圖無效，必須現場開著優惠券頁面讓店員掃，而且每張券限用一次'],
+['所以','四個人分開結帳不如湊成一單。過 ¥30,000 就從 5% 跳到 7%']],
+urlLabel:'Donki 官方免税說明',url:'https://www.donki.com/service/tax_free/jp/tax_free.php'},
+{key:'daimaru',name:'大丸心齋橋店',where:'D1 晚上，就在 PARCO 隔壁',save:'5% 折價券',rows:[
+['折多少','單次税込 ¥3,000 以上 5%，門檻比其他家都低'],
+['怎麼拿','帶護照到店內指定櫃台換 5% 券，入境未滿 6 個月、限外籍本人'],
+['不適用','特價品不算，只有定價商品；另有排除的樓層與品牌']],
+urlLabel:'大丸官方外籍旅客頁',url:'https://www.daimaru.co.jp/shinsaibashi/service/gaikoku.html'},
+{key:'uniqlo',name:'Uniqlo／GU',where:'D1 心齋橋筋、PARCO',save:'只有免税 10%',rows:[
+['折多少','沒有觀光客專屬折扣，就是免税而已，別花時間找券'],
+['門檻','單次税抜 ¥5,000（税込 ¥5,500）以上'],
+['怎麼辦','結帳時出示護照正本，影本和照片都不行']],
+urlLabel:'Uniqlo 官方免税條件',url:'https://faq.uniqlo.com/articles/Knowledge/100005975/'},
+{key:'joshin',name:'Joshin Super Kids Land',where:'D2 Den Den Town',save:'免税 10%',rows:[
+['先看這個','電視遊戲的主機、軟體、周邊一律不能免税，Apple 產品、PC 零件也不行'],
+['門檻','税抜 ¥5,000 以上'],
+['優惠券','Klook 等平台有日本橋店的免税優惠券，出發前先領好']],
+urlLabel:'Klook 免税券（第三方平台）',url:'https://www.klook.com/ja/activity/206087-joshin-denki-duty-free-coupon/'},
+{key:'drug',name:'松本清／マツキヨココカラ',where:'D1、D2 晚上',save:'免税 10%＋App 首購 10%',rows:[
+['折多少','官方 App 首次下載給 10% 折價券，食品類 5%'],
+['怎麼辦','結帳前出示 App 畫面，跟免税可以一起用']],
+urlLabel:'マツキヨ 官方券說明',url:'https://www.matsukiyococokara-online.com/store/catalog/campaign/view/campaign_id/howto_coupon/'}],
+warning:'免税不是折價券，是當場退掉 10% 消費税，要護照、單店單日税抜滿 ¥5,000。詳細規則看「準備」分頁的免税那一段。',
+note:'日本的免税制度 2026/11/1 起改成出境後退税，但你們 9 月出發，適用的還是現在這套「結帳當場免税」。網路上寫新制的文章對這趟不適用。'},
+
 souvenirs:{
 caption:'網路上被推薦最多次的品項，按你們哪一天會走到來分。不是待辦清單，是想不到要買什麼的時候翻的。',
 groups:[
