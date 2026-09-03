@@ -211,13 +211,19 @@ test('the facts that cost money if wrong are stated correctly', async ({ page })
 
   await page.getByRole('tab', { name: /買什麼/ }).click()
 
-  // ④ 吉鶴卡回饋要用保守值：QUICPay 未確認前不能把 1.5% 算進去。
+  /*
+   * ④ 吉鶴卡：7%／4% 成立，但前提是走 JCB 感應而不是 QUICPay——同一支手機、
+   * 同一張卡，按錯按鈕就少 1.5%。所以「怎麼刷」必須跟數字一樣顯眼。
+   */
   const jiho = page.locator('.fold', { hasText: '聯邦吉鶴卡' })
-  await expect(jiho.locator('summary')).toContainText('保守')
   await jiho.locator('summary').click()
-  await expect(jiho.locator('.card-terms dd').filter({ hasText: /指定商店 2.5＋3 ＝ 5.5%/ })).toBeVisible()
-  // 門檻算的是海外實體消費，不是台灣國內消費。
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /指定商店 2.5＋3＋1.5 ＝ 7%/ })).toBeVisible()
   await expect(jiho.locator('.card-terms dd').filter({ hasText: /不是台灣國內消費/ })).toBeVisible()
+  await expect(jiho.locator('.card-tip')).toContainText('タッチ決済')
+  await expect(jiho.locator('.card-tip')).toContainText('不要按 QUICPay 按鈕')
+
+  // 這句要出現在不用點開就看得到的策略卡，不能只藏在條款裡。
+  await expect(page.locator('.card-plan article').filter({ hasText: 'タッチ決済' })).toBeVisible()
 })
 
 test('reference folds stay collapsed until opened', async ({ page }) => {
@@ -786,7 +792,7 @@ test('the card section leads with what to use where, and dates itself', async ({
 
   // 結論不收在摺疊裡：不點開就要知道哪家刷哪張。
   const plan = page.locator('.card-plan article')
-  await expect(plan).toHaveCount(4)
+  await expect(plan).toHaveCount(5)
   // 順序就是刷卡順序：先吃掉 uniopen 的高趴數加碼，再換吉鶴卡。
   await expect(plan.nth(0)).toContainText('uniopen')
   await expect(plan.nth(1)).toContainText('吉鶴卡')
