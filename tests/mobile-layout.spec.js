@@ -701,22 +701,13 @@ test('the card section leads with what to use where, and dates itself', async ({
   // 結論不收在摺疊裡：不點開就要知道哪家刷哪張。
   const plan = page.locator('.card-plan article')
   await expect(plan).toHaveCount(4)
-  /*
-   * 順序就是刷卡順序，而且第一條是反直覺的：先湊滿 MyJapan+ 的 ¥100,000，
-   * 不要為了 uniopen 的 11% 把消費拆開，拆了就等於丟掉 ¥10,000。
-   */
-  await expect(plan.nth(0)).toContainText('¥100,000')
-  await expect(plan.nth(1)).toContainText('uniopen')
+  // 順序就是刷卡順序：先吃掉 uniopen 的高趴數加碼，再換吉鶴卡。
+  await expect(plan.nth(0)).toContainText('uniopen')
+  await expect(plan.nth(1)).toContainText('吉鶴卡')
   await expect(page.getByText(/結帳一律選日幣/)).toBeVisible()
 
   // 沒有查核日的回饋數字等於沒有依據。
   await expect(page.getByText(/回饋條件查核於 2026\/9\/3/)).toBeVisible()
-
-  // MyJapan+ 9/30 就截止，且必須事前登錄——期限漏寫等於整筆拿不到。
-  const jcb = page.locator('.fold', { hasText: 'MyJapan+' })
-  await jcb.locator('summary').click()
-  await expect(jcb.locator('.card-terms dd').filter({ hasText: /9\/30 截止/ })).toBeVisible()
-  await expect(jcb.locator('.card-terms dd').filter({ hasText: /QUICPay 是可以的/ })).toBeVisible()
 
   // 兩張卡的條款可以點開，且限量與登錄這兩個會讓人落空的條件要寫出來。
   const jiho = page.locator('.fold', { hasText: '聯邦吉鶴卡' })
