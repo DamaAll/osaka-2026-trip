@@ -895,8 +895,9 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .card-plan article { padding: 11px 12px; border: 1px solid #d9e6f5; border-radius: 12px; background: #f5f9fe; }
 .card-plan strong { display: block; margin-bottom: 3px; color: #1c4f80; font-size: 13px; }
 .card-plan p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-.card-terms { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; margin: 0; }
-.card-terms dt { color: #737b84; font-size: 11px; font-weight: 850; white-space: nowrap; }
+.card-terms { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr); gap: 8px 12px; margin: 0; }
+/* 標籤不能 nowrap：字一長就會撐出欄寬、壓到右邊的值上面。 */
+.card-terms dt { color: #737b84; font-size: 11px; font-weight: 850; line-height: 1.45; overflow-wrap: anywhere; }
 .card-terms dd { margin: 0; font-size: 12px; line-height: 1.5; }
 .card-tip { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #0a6df0; border-radius: 0 10px 10px 0; background: #f2f7ff; color: #1c4f80; font-size: 12px; line-height: 1.55; }
 .card-tip.amber { border-left-color: #e0a83c; background: #fffaf0; color: #7a6224; }
@@ -905,10 +906,13 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
  * 這頁是手機優先，但平板／視窗拉寬時內文會被拉成很長一行，
  * 而且單行的提示框變成一條空色帶。寬一點就把三張卡橫排，並限制行長。
  */
+/*
+ * 只調版面，不對 data-pretext 的元素設 max-width：那些文字由排版函式庫
+ * 依實際寬度斷行，額外限制寬度會讓文字溢出自己的底色。
+ */
 @media (min-width: 560px) {
   .card-plan { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .card-terms { grid-template-columns: 90px minmax(0, 1fr); }
-  .card-terms dd, .card-tip, .card-warning { max-width: 62ch; }
+  .card-terms { grid-template-columns: minmax(88px, max-content) minmax(0, 1fr); }
 }
 .fold-body > .action-link {
   display: inline-block;

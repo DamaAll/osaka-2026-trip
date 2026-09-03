@@ -723,7 +723,45 @@ test('the card section leads with what to use where, and dates itself', async ({
   // 官方兩份文件對 QUICPay 的說法互相矛盾，這件事不能只寫在提示裡就算了。
   await expect(jiho.locator('.card-tip')).toContainText('QUICPay')
 
+  /*
+   * 標籤欄曾經設 nowrap 又在 560px 以上被固定成 90px，字一長就撐爆欄寬、
+   * 壓在右邊的值上面。這個 bug 只在寬螢幕出現，所以兩種寬度都要量。
+   */
+  const overlapping = () => jiho.locator('.card-terms').evaluate(dl => {
+    const kids = [...dl.children]
+    const bad = []
+    for (let i = 0; i < kids.length; i += 2) {
+      const dt = kids[i]
+      const dd = kids[i + 1]
+      /*
+       * 量溢出，不是量盒子：nowrap 的標籤盒子仍是欄寬，文字卻畫到欄外壓在
+       * 右邊的值上面，所以 getBoundingClientRect 看不出來。
+       */
+      if (dt.scrollWidth > dt.clientWidth + 1) bad.push(`溢出：${dt.textContent.trim()}`)
+      if (dt.getBoundingClientRect().right > dd.getBoundingClientRect().left + 0.5) {
+        bad.push(`重疊：${dt.textContent.trim()}`)
+      }
+    }
+    return bad
+  })
+  expect(await overlapping()).toEqual([])
+
   await noHorizontalOverflow(page)
+
+  // 平板寬度：媒體查詢會換欄寬，重疊就是在這裡發生的。
+  await page.setViewportSize({ width: 700, height: 900 })
+  await expect(jiho.locator('.fold-body')).toBeVisible()
+  expect(await overlapping()).toEqual([])
+  await noHorizontalOverflow(page)
+
+  /*
+   * data-pretext 的文字由排版函式庫依量到的寬度斷行，而摺疊關著時量不到，
+   * 打開後文字就會超出自己的底色。摺疊裡的內容一律不掛 data-pretext。
+   */
+  const clipped = await page.locator('.fold-body [data-pretext]').evaluateAll(els => (
+    els.map(el => el.textContent.trim().slice(0, 20))
+  ))
+  expect(clipped).toEqual([])
 })
 
 // 在店裡看到想買的，直接帶進分帳表單，不用把品名再打一次。

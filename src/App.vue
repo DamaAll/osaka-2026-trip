@@ -1076,10 +1076,11 @@ onBeforeUnmount(() => {
             <div class="fold-body">
               <dl class="card-terms">
                 <template v-for="([label, value]) in card.rows" :key="label">
-                  <dt>{{ label }}</dt><dd data-pretext>{{ value }}</dd>
+                  <!-- 摺疊裡不用 data-pretext：關著時量不到寬度，打開後文字會溢出。 -->
+                  <dt>{{ label }}</dt><dd>{{ value }}</dd>
                 </template>
               </dl>
-              <p class="card-tip" :class="card.tone" data-pretext>{{ card.tip }}</p>
+              <p class="card-tip" :class="card.tone">{{ card.tip }}</p>
               <a class="action-link" :href="card.url" target="_blank" rel="noopener">官方活動頁</a>
             </div>
           </details>
