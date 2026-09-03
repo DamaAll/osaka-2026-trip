@@ -890,6 +890,31 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .other-rules .decision-grid { margin-top: 0; }
 
 /* 通用規則清單：標題 + 一句說明 */
+/* 刷卡回饋：先給「在哪家刷哪張」，條款收在摺疊裡。 */
+.card-plan { display: grid; gap: 8px; margin-bottom: 12px; }
+.card-plan article { padding: 11px 12px; border: 1px solid #d9e6f5; border-radius: 12px; background: #f5f9fe; }
+.card-plan strong { display: block; margin-bottom: 3px; color: #1c4f80; font-size: 13px; }
+.card-plan p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.card-terms { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; margin: 0; }
+.card-terms dt { color: #737b84; font-size: 11px; font-weight: 850; white-space: nowrap; }
+.card-terms dd { margin: 0; font-size: 12px; line-height: 1.5; }
+.card-tip { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #0a6df0; border-radius: 0 10px 10px 0; background: #f2f7ff; color: #1c4f80; font-size: 12px; line-height: 1.55; }
+.card-tip.amber { border-left-color: #e0a83c; background: #fffaf0; color: #7a6224; }
+.card-warning { margin-top: 12px; }
+.fold-body > .action-link {
+  display: inline-block;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid #d6e4f4;
+  border-radius: 10px;
+  background: #f3f8fe;
+  color: #285c91;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .rule-list { display: grid; gap: 8px; }
 .rule-list article { padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
 .rule-list strong { display: block; font-size: 12px; line-height: 1.4; }

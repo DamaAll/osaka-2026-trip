@@ -688,6 +688,37 @@ test('member names travel with the backup', async ({ page }) => {
   expect(backup.members.m3).toBe('阿凱')
 })
 
+/*
+ * 刷卡回饋是整個網站最短命的資料：活動有起訖、有月上限、還有限量名額。
+ * 所以它必須帶著查核日，而且「在哪家刷哪張」要在點開任何摺疊之前就看得到。
+ */
+test('the card section leads with what to use where, and dates itself', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'buy')
+
+  await expect(page.getByRole('heading', { name: '刷哪張卡' })).toBeVisible()
+
+  // 結論不收在摺疊裡：不點開就要知道哪家刷哪張。
+  const plan = page.locator('.card-plan article')
+  await expect(plan).toHaveCount(3)
+  await expect(plan.first()).toContainText('吉鶴卡')
+  await expect(page.getByText(/結帳一律選日幣/)).toBeVisible()
+
+  // 沒有查核日的回饋數字等於沒有依據。
+  await expect(page.getByText(/回饋條件查核於 2026\/9\/3/)).toBeVisible()
+
+  // 兩張卡的條款可以點開，且限量與登錄這兩個會讓人落空的條件要寫出來。
+  const jiho = page.locator('.fold', { hasText: '聯邦吉鶴卡' })
+  await expect(jiho.locator('.fold-body')).toBeHidden()
+  await jiho.locator('summary').click()
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /限量 1,350 名/ })).toBeVisible()
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /消費當月.*登錄/ })).toBeVisible()
+  // 限量名額用完就沒了，所以提示區也要再講一次「早點登錄」。
+  await expect(jiho.locator('.card-tip')).toContainText('先到先得')
+
+  await noHorizontalOverflow(page)
+})
+
 // 在店裡看到想買的，直接帶進分帳表單，不用把品名再打一次。
 test('an idea from the buy tab lands in the split form', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })

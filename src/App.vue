@@ -1059,6 +1059,35 @@ onBeforeUnmount(() => {
           </div>
         </section>
 
+        <!-- 回饋比買什麼更會變，所以擺在品項清單前面，並且標出查核日。 -->
+        <section class="content-section" aria-labelledby="cards-title">
+          <div class="section-title-row">
+            <div><p class="section-kicker">CARDS</p><h2 id="cards-title">刷哪張卡</h2><p class="section-caption" data-pretext>{{ trip.cardDeals.caption }}</p></div>
+          </div>
+
+          <div class="card-plan">
+            <article v-for="([where, how]) in trip.cardDeals.plan" :key="where">
+              <strong>{{ where }}</strong><p data-pretext>{{ how }}</p>
+            </article>
+          </div>
+
+          <details v-for="card in trip.cardDeals.cards" :key="card.key" class="fold">
+            <summary><strong>{{ card.name }}</strong><small>{{ card.best }} · {{ card.period }}</small></summary>
+            <div class="fold-body">
+              <dl class="card-terms">
+                <template v-for="([label, value]) in card.rows" :key="label">
+                  <dt>{{ label }}</dt><dd data-pretext>{{ value }}</dd>
+                </template>
+              </dl>
+              <p class="card-tip" :class="card.tone" data-pretext>{{ card.tip }}</p>
+              <a class="action-link" :href="card.url" target="_blank" rel="noopener">官方活動頁</a>
+            </div>
+          </details>
+
+          <p class="fold-warning card-warning" data-pretext>{{ trip.cardDeals.warning }}</p>
+          <p class="verified-tag">回饋條件查核於 {{ trip.cardDeals.checkedAt }}，出發前請再對一次官方頁</p>
+        </section>
+
         <section class="content-section">
           <div class="section-title-row"><div><p class="section-kicker">BY DAY</p><h2>按你哪天會走到分</h2><p class="section-caption">平常收起來，逛到那一區再點開。</p></div></div>
           <details v-for="group in trip.souvenirs.groups" :key="group.key" class="fold">
