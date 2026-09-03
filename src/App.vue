@@ -52,6 +52,8 @@ const dataMessage = ref('')
 const fileInput = ref(null)
 const emergencyInfo = reactive({ hotelName: '', hotelAddress: '', hotelPhone: '', booking: '', insurance: '', contact: '' })
 const emergencyError = ref('')
+const emergencySaved = ref(false)
+let emergencySavedTimer
 // 旅行中隨手記（店名、明天要補買的東西），也讓這頁在回國後還留得住東西。
 const dayNotes = reactive({})
 let observer
@@ -359,6 +361,10 @@ const persistEmergencyInfo = () => {
   try {
     localStorage.setItem(emergencyStorageKey, JSON.stringify(emergencyInfo))
     emergencyError.value = ''
+    // 按了儲存卻沒有任何回饋，使用者會不確定到底存了沒。
+    emergencySaved.value = true
+    clearTimeout(emergencySavedTimer)
+    emergencySavedTimer = setTimeout(() => { emergencySaved.value = false }, 3000)
   } catch {
     emergencyError.value = '無法儲存到這支手機，請確認瀏覽器沒有封鎖網站資料。'
   }
@@ -369,6 +375,8 @@ const buildDataExport = () => ({
   exportedAt: new Date().toISOString(),
   checks: Object.fromEntries(checklistItems.value.map(([key]) => [key, !!checks[key]])),
   members: { ...memberNames },
+  // 匯率也要跟著走，否則換手機後台幣欄位全部回到預設值。
+  twdRate: Number(twdRate.value) || 0,
   shopping: { budget: Math.max(0, Number(shoppingBudget.value) || 0), entries: shoppingEntries.value },
   emergency: { ...emergencyInfo },
   dayNotes: { ...dayNotes }
@@ -382,7 +390,7 @@ const exportData = () => {
   link.download = 'osaka-2026-trip-backup.json'
   link.click()
   URL.revokeObjectURL(url)
-  dataMessage.value = '已下載本機備份檔。'
+  dataMessage.value = '已下載備份檔。裡面有訂房、保單與緊急聯絡人，當作證件影本保管，不要隨手丟到群組。'
 }
 
 const openImport = () => fileInput.value?.click()
@@ -398,6 +406,8 @@ const importData = async (event) => {
     // 先套名字再讀支出：歸屬存的是 id，兩者順序不影響對應。
     setMemberNames(parsed.members)
     persistMembers()
+    const rate = Number(parsed.twdRate)
+    if (Number.isFinite(rate) && rate > 0) { twdRate.value = rate; persistRate() }
     const shopping = parsed.shopping || {}
     shoppingBudget.value = Math.max(0, Number(shopping.budget) || 0) || ''
     shoppingEntries.value = Array.isArray(shopping.entries) ? shopping.entries.map(item => ({
@@ -430,7 +440,7 @@ const shareData = async () => {
     if (navigator.share) await navigator.share({ title: '大阪 2026 行程', text: shareText, url: window.location.href })
     else {
       await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`)
-      dataMessage.value = '已複製分享連結。'
+      dataMessage.value = '已複製行程網址。這只有網址，勾選、支出與筆記要用「匯出備份」才帶得走。'
       return
     }
     dataMessage.value = '已開啟系統分享。'
@@ -913,12 +923,13 @@ onBeforeUnmount(() => {
         </section>
 
         <details class="fold">
-          <summary><strong>換手機或給同行者用</strong><small>資料只存在這支手機，用備份檔搬移</small></summary>
+          <summary><strong>換手機或給同行者用</strong><small>四支手機不互通，用備份檔搬移</small></summary>
           <div class="fold-body">
             <div class="data-tools-actions">
               <button type="button" class="secondary-cta" @click="exportData">匯出備份</button>
               <button type="button" class="secondary-cta" @click="openImport">匯入備份</button>
-              <button type="button" class="secondary-cta" @click="shareData">分享連結</button>
+              <!-- 只送出網址與摘要，不含清單、支出與筆記，名字要說清楚。 -->
+              <button type="button" class="secondary-cta" @click="shareData">分享行程網址</button>
               <input ref="fileInput" class="visually-hidden" type="file" accept="application/json,.json" @change="importData" />
             </div>
             <p v-if="dataMessage" class="data-message" role="status">{{ dataMessage }}</p>
@@ -933,8 +944,15 @@ onBeforeUnmount(() => {
             <div><p class="section-kicker">MONEY</p><h2 id="money-title">日幣要準備多少</h2><p class="section-caption">大額購物刷卡，現金留給加值、小店與備援。</p></div>
           </div>
           <div class="money-hero">
-            <div><small>每人實體現金</small><strong>{{ trip.moneyPlan.cashPerPerson }}</strong><span>建議分兩處保管</span></div>
+            <div><small>每人要換的現鈔</small><strong>{{ trip.moneyPlan.cashPerPerson }}</strong><span>不是全部花費，其餘刷卡</span></div>
             <div><small>4 人現金合計</small><strong>{{ trip.moneyPlan.cashForGroup }}</strong><span>不要由同一人全拿</span></div>
+          </div>
+          <!-- 拆開講，否則 ¥30,000–40,000 會被讀成「全部都要換成現鈔」。 -->
+          <div class="cash-split">
+            <article v-for="([label, amount, desc]) in trip.moneyPlan.cashSplit" :key="label">
+              <span><strong>{{ label }}</strong><b>{{ amount }}</b></span>
+              <p>{{ desc }}</p>
+            </article>
           </div>
           <div class="trip-budget-row">
             <span><small>整趟基本支出預估</small><strong>{{ trip.moneyPlan.tripBudget }}</strong></span>
@@ -1003,7 +1021,8 @@ onBeforeUnmount(() => {
           </details>
 
           <div v-if="shoppingEntries.length" class="split-table">
-            <p class="split-caption">每個人實際要付</p>
+            <!-- 這裡只算應分攤額，沒有記付款人，所以不能叫「實際要付」。 -->
+            <p class="split-caption">每人應分攤（未扣已付）</p>
             <div v-for="row in shoppingSplit" :key="row.id" class="split-row">
               <strong>{{ row.name }}</strong>
               <span>個人 {{ formatYen(row.own) }} ＋ 共用 {{ formatYen(row.shared) }}</span>
@@ -1234,6 +1253,7 @@ onBeforeUnmount(() => {
             <button class="primary-cta emergency-save" type="submit">儲存緊急資訊</button>
           </form>
           <p v-if="emergencyError" class="shopping-error" role="alert">{{ emergencyError }}</p>
+          <p v-else-if="emergencySaved" class="emergency-saved" role="status">已存到這支手機。換手機請用「匯出備份」帶走。</p>
         </section>
       </template>
     </div>

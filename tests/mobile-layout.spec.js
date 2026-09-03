@@ -184,6 +184,42 @@ test('Den Den Town is ordered by opening time, not by preference', async ({ page
   await expect(stop).toContainText('12:00 才開門')
 })
 
+/*
+ * 四件會讓人在現場做錯決定的事。共同點是「頁面上寫錯也看不出來」，
+ * 只有把結論本身寫進斷言才擋得住。
+ */
+test('the facts that cost money if wrong are stated correctly', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'prep')
+
+  // ① 免稅 QR 不能截圖：畫面有會走的時鐘供店員驗真，截圖當場會被拒絕。
+  const taxFree = page.locator('.fold', { hasText: '免稅怎麼買才不會出錯' })
+  await taxFree.locator('summary').click()
+  await expect(taxFree.getByText(/免稅 QR 不能截圖/)).toBeVisible()
+
+  // ② ICOCA 何時買：D1 機場就買得到，不能還停在舊的「D2 才有機會」。
+  const sim = page.locator('.fold', { hasText: '手機與交通卡' })
+  await sim.locator('summary').click()
+  await expect(sim.getByText(/D1 就買得到/)).toBeVisible()
+  await expect(sim.getByText(/直接搭巴士進市區/)).toHaveCount(0)
+
+  // ③ 行動電源：Peach 2026/4/24 新規，帶超過或機上使用會被攔。
+  const power = page.locator('.check-row', { hasText: '行動電源' })
+  await expect(power.locator('.check-copy strong')).toContainText('每人最多 2 個')
+  await expect(power.locator('.check-copy small')).toContainText('160Wh')
+  await expect(power.locator('.check-copy small')).toContainText('機上不能用它充手機')
+
+  await page.getByRole('tab', { name: /買什麼/ }).click()
+
+  // ④ 吉鶴卡回饋要用保守值：QUICPay 未確認前不能把 1.5% 算進去。
+  const jiho = page.locator('.fold', { hasText: '聯邦吉鶴卡' })
+  await expect(jiho.locator('summary')).toContainText('保守')
+  await jiho.locator('summary').click()
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /指定商店 2.5＋3 ＝ 5.5%/ })).toBeVisible()
+  // 門檻算的是海外實體消費，不是台灣國內消費。
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /不是台灣國內消費/ })).toBeVisible()
+})
+
 test('reference folds stay collapsed until opened', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'prep')
