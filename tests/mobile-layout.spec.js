@@ -134,6 +134,32 @@ test('decision rules and touch targets are usable on mobile', async ({ page }) =
   expect(undersizedTargets).toEqual([])
 })
 
+/*
+ * App 清單要在「哪一天用」講清楚，否則跟網路上的通用清單沒兩樣。
+ * 而且必須擋掉已停止服務的 JNTO 官方 App——那個到現在還在很多清單上。
+ */
+test('the app list says which day each app is for, and links out', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'prep')
+
+  await expect(page.getByRole('heading', { name: '出發前要裝的 App' })).toBeVisible()
+
+  const apps = page.locator('.app-list article')
+  await expect(apps).toHaveCount(7)
+  // 每個都要標出用在哪一天，也都要有官方連結。
+  await expect(page.locator('.app-list .app-when')).toHaveCount(7)
+  await expect(page.locator('.app-list a.app-link')).toHaveCount(7)
+
+  await expect(apps.filter({ hasText: 'USJ 官方 App' })).toContainText('D4')
+  await expect(apps.filter({ hasText: 'Safety tips' })).toContainText('颱風')
+  // VoiceTra 不能離線，這件事不寫的話沒網路時會撲空。
+  await expect(apps.filter({ hasText: 'VoiceTra' })).toContainText('不能離線')
+
+  await expect(page.getByText(/Japan Official Travel App/)).toContainText('停止服務')
+
+  await noHorizontalOverflow(page)
+})
+
 test('reference folds stay collapsed until opened', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'prep')
@@ -796,8 +822,17 @@ test('coupons cover the shops on the route, with the catch spelled out', async (
   await expect(page.getByText(/優惠內容查核於 2026\/9\/3/)).toBeVisible()
 
   // 摺疊裡不掛 data-pretext，關著時量不到寬度會讓文字溢出底色。
-  const clipped = await page.locator('.fold-body [data-pretext]').count()
-  expect(clipped).toBe(0)
+  const inFolds = await page.locator('.fold-body [data-pretext]').count()
+  expect(inFolds).toBe(0)
+
+  /*
+   * 行程與準備兩頁本來就有這道檢查，買什麼沒有——所以這頁的排版問題一直
+   * 沒人擋。這裡補上：任何 pretext 段落都不能被自己的容器切掉。
+   */
+  const clipped = await page.evaluate(() => [...document.querySelectorAll('[data-pretext]')]
+    .filter(el => el.scrollHeight > el.clientHeight + 1)
+    .map(el => `${el.className || el.tagName}: ${el.textContent.trim().slice(0, 20)}`))
+  expect(clipped).toEqual([])
 
   await noHorizontalOverflow(page)
 })

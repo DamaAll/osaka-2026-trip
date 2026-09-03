@@ -810,6 +810,23 @@ onBeforeUnmount(() => {
           </div>
         </section>
 
+        <!-- App 要在家裡的 Wi-Fi 裝好，所以擺在 checklist 後面、參考資料前面。 -->
+        <section class="content-section" aria-labelledby="apps-title">
+          <div class="section-title-row">
+            <div><p class="section-kicker">APPS</p><h2 id="apps-title">出發前要裝的 App</h2><p class="section-caption" data-pretext>{{ trip.apps.caption }}</p></div>
+          </div>
+          <div class="rule-list app-list">
+            <article v-for="([name, when, desc, url]) in trip.apps.items" :key="name">
+              <div class="app-head"><strong>{{ name }}</strong><span class="app-when">{{ when }}</span></div>
+              <p data-pretext>{{ desc }}</p>
+              <a class="app-link" :href="url" target="_blank" rel="noopener">開啟官方頁</a>
+            </article>
+          </div>
+          <!-- 這幾段不掛 data-pretext：fold-warning 的 padding 加左邊框會讓排版算錯高度，文字被切掉一行。 -->
+          <p class="fold-warning">{{ trip.apps.warning }}</p>
+          <p class="verified-tag">App 清單查核於 {{ trip.apps.checkedAt }}</p>
+        </section>
+
         <section class="content-section">
           <div class="section-title-row"><div><p class="section-kicker">REFERENCE</p><h2>出發前要先弄懂的事</h2><p class="section-caption">平常收起來，需要的時候再點開。</p></div></div>
 
@@ -1085,7 +1102,7 @@ onBeforeUnmount(() => {
             </div>
           </details>
 
-          <p class="fold-warning card-warning" data-pretext>{{ trip.cardDeals.warning }}</p>
+          <p class="fold-warning card-warning">{{ trip.cardDeals.warning }}</p>
           <p class="verified-tag">回饋條件查核於 {{ trip.cardDeals.checkedAt }}，出發前請再對一次官方頁</p>
         </section>
 
@@ -1106,8 +1123,8 @@ onBeforeUnmount(() => {
             </div>
           </details>
 
-          <p class="fold-warning card-warning" data-pretext>{{ trip.coupons.warning }}</p>
-          <p class="card-tip" data-pretext>{{ trip.coupons.note }}</p>
+          <p class="fold-warning card-warning">{{ trip.coupons.warning }}</p>
+          <p class="card-tip">{{ trip.coupons.note }}</p>
           <p class="verified-tag">優惠內容查核於 {{ trip.coupons.checkedAt }}，出發前再確認一次</p>
         </section>
 
