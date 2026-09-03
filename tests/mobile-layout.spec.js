@@ -160,6 +160,30 @@ test('the app list says which day each app is for, and links out', async ({ page
   await noHorizontalOverflow(page)
 })
 
+/*
+ * Den Den Town 那幾家的開門時間不一樣，まんだらけ 12:00 才開。
+ * 逛的順序必須照開門時間排，否則 11 點會站在鐵門前——這種錯在頁面上
+ * 看起來完全正常，只有把順序寫進測試才擋得住。
+ */
+test('Den Den Town is ordered by opening time, not by preference', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'itinerary')
+
+  // 用標題定位：前一站黑門市場的備註裡也提到 Den Den Town。
+  const stop = page.locator('.journey-content').filter({
+    has: page.getByRole('heading', { name: '日本橋 Den Den Town' })
+  })
+  const desc = await stop.locator('p').first().innerText()
+
+  // 最早開的在前、12:00 才開的在最後。
+  const order = ['Surugaya', 'Joshin', 'Animate', 'Mandarake']
+  const positions = order.map(name => desc.indexOf(name))
+  positions.forEach(pos => expect(pos).toBeGreaterThan(-1))
+  expect(positions).toEqual([...positions].sort((a, b) => a - b))
+
+  await expect(stop).toContainText('12:00 才開門')
+})
+
 test('reference folds stay collapsed until opened', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'prep')
