@@ -901,6 +901,15 @@ h1 { margin: 0; font-size: clamp(37px, 10.8vw, 52px); line-height: .98; letter-s
 .card-tip { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #0a6df0; border-radius: 0 10px 10px 0; background: #f2f7ff; color: #1c4f80; font-size: 12px; line-height: 1.55; }
 .card-tip.amber { border-left-color: #e0a83c; background: #fffaf0; color: #7a6224; }
 .card-warning { margin-top: 12px; }
+/*
+ * 這頁是手機優先，但平板／視窗拉寬時內文會被拉成很長一行，
+ * 而且單行的提示框變成一條空色帶。寬一點就把三張卡橫排，並限制行長。
+ */
+@media (min-width: 560px) {
+  .card-plan { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .card-terms { grid-template-columns: 90px minmax(0, 1fr); }
+  .card-terms dd, .card-tip, .card-warning { max-width: 62ch; }
+}
 .fold-body > .action-link {
   display: inline-block;
   min-height: 44px;

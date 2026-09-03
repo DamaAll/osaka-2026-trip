@@ -701,7 +701,9 @@ test('the card section leads with what to use where, and dates itself', async ({
   // 結論不收在摺疊裡：不點開就要知道哪家刷哪張。
   const plan = page.locator('.card-plan article')
   await expect(plan).toHaveCount(3)
-  await expect(plan.first()).toContainText('吉鶴卡')
+  // 順序就是刷卡順序：先吃掉 uniopen 的高趴數加碼，再換吉鶴卡。
+  await expect(plan.nth(0)).toContainText('uniopen')
+  await expect(plan.nth(1)).toContainText('吉鶴卡')
   await expect(page.getByText(/結帳一律選日幣/)).toBeVisible()
 
   // 沒有查核日的回饋數字等於沒有依據。
@@ -711,10 +713,11 @@ test('the card section leads with what to use where, and dates itself', async ({
   const jiho = page.locator('.fold', { hasText: '聯邦吉鶴卡' })
   await expect(jiho.locator('.fold-body')).toBeHidden()
   await jiho.locator('summary').click()
-  await expect(jiho.locator('.card-terms dd').filter({ hasText: /限量 1,350 名/ })).toBeVisible()
-  await expect(jiho.locator('.card-terms dd').filter({ hasText: /消費當月.*登錄/ })).toBeVisible()
-  // 限量名額用完就沒了，所以提示區也要再講一次「早點登錄」。
-  await expect(jiho.locator('.card-tip')).toContainText('先到先得')
+  // 門檻與月上限是「以為有、其實沒有」的來源，必須寫在條款列裡。
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /超過 NT\$15,000 的部分/ })).toBeVisible()
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /月上限 600 元/ })).toBeVisible()
+  // 官方兩份文件對 QUICPay 的說法互相矛盾，這件事不能只寫在提示裡就算了。
+  await expect(jiho.locator('.card-tip')).toContainText('QUICPay')
 
   await noHorizontalOverflow(page)
 })
