@@ -700,7 +700,7 @@ test('the card section leads with what to use where, and dates itself', async ({
 
   // 結論不收在摺疊裡：不點開就要知道哪家刷哪張。
   const plan = page.locator('.card-plan article')
-  await expect(plan).toHaveCount(3)
+  await expect(plan).toHaveCount(4)
   // 順序就是刷卡順序：先吃掉 uniopen 的高趴數加碼，再換吉鶴卡。
   await expect(plan.nth(0)).toContainText('uniopen')
   await expect(plan.nth(1)).toContainText('吉鶴卡')
@@ -716,6 +716,10 @@ test('the card section leads with what to use where, and dates itself', async ({
   // 門檻與月上限是「以為有、其實沒有」的來源，必須寫在條款列裡。
   await expect(jiho.locator('.card-terms dd').filter({ hasText: /超過 NT\$15,000 的部分/ })).toBeVisible()
   await expect(jiho.locator('.card-terms dd').filter({ hasText: /月上限 600 元/ })).toBeVisible()
+  // 11 大商店那筆的上限是整期 600 元、不是每月，寫錯會讓人以為每個月都重來。
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /整個活動期間 600 元/ })).toBeVisible()
+  // 不是新戶，官網主打的數字要明講不適用，否則會照著錯誤期待去刷。
+  await expect(jiho.locator('.card-terms dd').filter({ hasText: /你不是新戶/ })).toBeVisible()
   // 官方兩份文件對 QUICPay 的說法互相矛盾，這件事不能只寫在提示裡就算了。
   await expect(jiho.locator('.card-tip')).toContainText('QUICPay')
 
