@@ -192,10 +192,15 @@ test('the facts that cost money if wrong are stated correctly', async ({ page })
   await page.setViewportSize({ width: 390, height: 844 })
   await openTrip(page, 'prep')
 
-  // ① 免稅 QR 不能截圖：畫面有會走的時鐘供店員驗真，截圖當場會被拒絕。
+  /*
+   * ① 免稅。上一輪只斷言「正確說法存在」，結果舊的錯誤副本留在別處也照樣通過——
+   * 同一頁給出相反指示比沒寫還糟，所以這裡改成連錯誤說法都不准出現。
+   */
   const taxFree = page.locator('.fold', { hasText: '免稅怎麼買才不會出錯' })
   await taxFree.locator('summary').click()
   await expect(taxFree.getByText(/免稅 QR 不能截圖/)).toBeVisible()
+  await expect(page.getByText(/不能合併湊/)).toHaveCount(0)
+  await expect(page.getByText(/免稅 QR，建議截圖/)).toHaveCount(0)
 
   // ② ICOCA 何時買：D1 機場就買得到，不能還停在舊的「D2 才有機會」。
   const sim = page.locator('.fold', { hasText: '手機與交通卡' })
@@ -224,6 +229,40 @@ test('the facts that cost money if wrong are stated correctly', async ({ page })
 
   // 這句要出現在不用點開就看得到的策略卡，不能只藏在條款裡。
   await expect(page.locator('.card-plan article').filter({ hasText: 'タッチ決済' })).toBeVisible()
+
+  /*
+   * ⑤ USJ：閘門那張要看 App 分流，但別處還留著「直接衝咚奇剛，不要先抽券」，
+   * 兩張卡就會給出相反指令。整理券一旦開始發，先衝設施等於賭掉全團資格。
+   */
+  await page.getByRole('tab', { name: /行程/ }).click()
+  await expect(page.getByText(/直接衝咚奇剛，不要先抽券/)).toHaveCount(0)
+  const usjGate = page.locator('.journey-content').filter({
+    has: page.getByRole('heading', { name: /看 App 分流/ })
+  })
+  await expect(usjGate).toContainText('已經開始發整理券')
+
+  // ⑥ 計程車：正文改了但費用欄留著舊價，會讓人以為只要 ¥135。
+  await expect(page.getByText(/計程車每人約 ¥135/)).toHaveCount(0)
+  const taxi = page.locator('.journey-content').filter({
+    has: page.getByRole('heading', { name: '伏見稻荷 → 清水寺' })
+  })
+  await expect(taxi.locator('.fare-pill')).toContainText('¥200–325')
+})
+
+// 匯率與成員一起放進備份，換手機後台幣欄位不能回到預設值。
+test('the exchange rate travels with the backup', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'money')
+
+  await page.getByLabel(/匯率/).fill('0.238')
+  await page.getByRole('tab', { name: /準備/ }).click()
+  await page.locator('.fold', { hasText: '換手機或給同行者用' }).locator('summary').click()
+  const download = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: '匯出備份' }).click()
+  ]).then(([d]) => d)
+  const backup = JSON.parse(await readFile(await download.path(), 'utf8'))
+  expect(backup.twdRate).toBe(0.238)
 })
 
 test('reference folds stay collapsed until opened', async ({ page }) => {
@@ -952,7 +991,8 @@ test('D4 never sends anyone out of the park to rest', async ({ page }) => {
   const usj = page.locator('.fold', { hasText: '不買快速通關' })
   await usj.locator('summary').click()
   await expect(usj.locator('.step-list li')).toHaveCount(6)
-  await expect(usj.getByText(/開園先衝咚奇剛/)).toBeVisible()
+  // 這裡以前寫「開園先衝咚奇剛」，跟閘門那張的 App 分流互相打架，已統一成分流。
+  await expect(usj.getByText(/進園先看 App/)).toBeVisible()
   await page.getByRole('tab', { name: /行程/ }).click()
 
   const d4 = page.locator('#d4')

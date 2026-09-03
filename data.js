@@ -59,7 +59,7 @@ caption:'已決定不買，靠早到與整理券取代',
 warning:'9/24 含咚奇剛的方案都已售完，剩下的組合多半把名額花在沒點名的設施上，所以決定不買。代價是抵達時間變成今天的勝負點：旺季整理券常在開園後 30–45 分鐘就抽完。',
 steps:[
 ['05:20 起床，06:45 到園區','比原訂提早 30 分鐘。沒有保證入場，早到 30 分鐘的價值遠大於多睡 30 分鐘。'],
-['開園先衝咚奇剛，不要先抽券','人少時 SUPER NINTENDO WORLD 常常不用整理券就進得去。咚奇剛開園有機會 30 分鐘內排到，08:00 後通常要 2 小時以上。'],
+['進園先看 App，再決定衝設施還是抽券','SUPER NINTENDO WORLD 顯示自由入場，就直奔咚奇剛，開園有機會 30 分鐘內排到、08:00 後通常要 2 小時以上；已經開始發整理券就先抽四人份再說。順序由 App 決定，不要憑印象。'],
 ['進場後由一人代表抽全員的整理券','一個人在 App 登錄四張票，一次抽四人份，才會是同一時段。四個人各抽各的會拿到不同時段、把隊伍拆散。園內發券機 2026 年已廢止，只能用 App。'],
 ['整理券抽完會轉成抽選券','那是抽籤，沒中就進不去。沒中就等傍晚人潮散掉再試，中午最擠不要硬闖。'],
 ['看到 60 分鐘以上的隊就先跳過','沒有快速通關就要靠調度：先玩隔壁的，晚點再回頭。'],
@@ -72,7 +72,7 @@ caption:'這趟仍是「店頭直接免稅」的舊制；2026/11/1 之後才改�
 rules:[
 ['帶護照本人到場','免稅要本人＋護照正本，同行者不能代刷。'],
 ['免稅 QR 不能截圖','入境與海關 QR 可以先截圖，但免稅 QR 不行——那個畫面上有一個會走的時鐘讓店員驗真，截圖和列印都不能用。結帳時要現場開 Visit Japan Web。'],
-['兩類商品分開算門檻','一般物品（3C、服飾）與消耗品（藥妝、食品）各自要滿 ¥5,000，不能合併湊。'],
+['兩類商品原則分開算，但可以合併','一般物品（3C、服飾）與消耗品（藥妝、食品）各自要滿 ¥5,000。兩邊都不到時可以合併計算，條件是一般物品要比照消耗品做特殊包裝、之後不能拆。實際能不能合併看店家系統支不支援，不要當成一定可以。'],
 ['消耗品封袋不可拆','藥妝食品會被封袋，在日本境內拆開就要補稅。當下要用的東西另外買一份含稅的。'],
 ['封袋幾乎一定要托運','體積大又不能拆，直接影響回程公斤數。']],
 warning:'Bic Camera、Donki、藥妝店結帳前先確認免稅櫃檯位置與截止時間，有些店晚上會提早關窗口。',
@@ -314,12 +314,12 @@ groupRules:[
 // ─────────── 連結與速覽 ───────────
 quickLinks:[
 {title:'eSIM',desc:'KKday 日本 SoftBank eSIM',url:'https://www.kkday.com/zh-tw/product/149025-japan-network-card-softbank-high-speed-500mb-1gb-2gb-3gb-esim',label:'KKday eSIM'},
-{title:'Visit Japan Web',desc:'入境審查＋海關＋免稅 QR，建議截圖',url:'https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/',label:'官方繁中頁'},
+{title:'Visit Japan Web',desc:'入境與海關 QR 可截圖；免稅 QR 不可截圖',url:'https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/',label:'官方繁中頁'},
 {title:'役男出境申請',desc:'有役男身分者確認是否需要申請',url:'https://service.dca.moi.gov.tw/departure/app/Departure/main',label:'內政部役政司'},
 {title:'USJ 官方 App',desc:'不買快速通關，整理券靠它抽。4 人先登入綁票券',url:'https://www.usj.co.jp/web/zh/tw/plan/app',label:'USJ 官方 App'}],
 
 costs:[
-['D1 約 ¥1,200','南海＋なんば計程車分攤'],['D2 約 ¥380','Metro 2 段；不買一日券'],['D3 約 ¥1,600','大阪 ↔ 京都電車'],['D4 約 ¥440','心齋橋 → USJ'],['D5 ¥1,800','USJ → KIX 巴士'],['合計約 ¥5,400','每人；D1 含計程車分攤，不含門票']],
+['D1 約 ¥1,200','南海＋なんば計程車分攤'],['D2 約 ¥380','Metro 2 段；不買一日券'],['D3 約 ¥1,800–1,925','大阪 ↔ 京都電車＋清水寺計程車分攤'],['D4 約 ¥440','心齋橋 → USJ'],['D5 ¥1,800','USJ → KIX 巴士'],['合計約 ¥5,620–5,745','每人；D1 與 D3 含計程車分攤，不含門票']],
 
 // ─────────── 每日行程 ───────────
 days:[
@@ -350,11 +350,11 @@ weatherPlan:{title:'天氣切換',url:'https://global.kyoto.travel/en/faq/detail
 items:[
 {time:'06:20',type:'transport',title:'心齋橋 → 伏見稻荷',desc:'秋分日，京都一定早出。',note:'今天是連假最後一天，也是彼岸期間，寺社人潮比平常多。',transport:{head:'🚇＋🚆 心齋橋 → 伏見稻荷',fare:'約 ¥680',steps:['心齋橋 M19 搭御堂筋線往箕面萱野／新大阪方向 → 淀屋橋 M17。','走御堂筋線「北改札」出站，跟「京阪本線」指標走約 20 公尺進連絡通道，到京阪「西改札口」約 2 分鐘。','往出町柳方向；若搭特急，在丹波橋轉準急／普通。','伏見稲荷 KH34 下車；全程直接刷交通卡。']},actions:[['↗ 直接導航','https://www.google.com/maps/dir/?api=1&origin=Just+Sleep+Osaka+Shinsaibashi&destination=Fushimi+Inari+Taisha&travelmode=transit','route']]},
 {time:'07:35–09:10',type:'attraction',title:'伏見稻荷｜回程在參道吃早餐',desc:'千本鳥居走到中段就回，回程約 08:30 在參道解決早餐。',note:'鳥居隧道要拍空景就是現在，9 點後人潮會塞住整條路。參道小吃約 08:00 後陸續開門，所以先走鳥居、回程再吃，順序不要反。今天要走到 12:30 才有午餐，這一餐不能跳過。參道請靠邊拍，不要擋住通行。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Fushimi+Inari+Taisha','map']]},
-{time:'09:20–10:15',type:'transport',gapMinutes:5,title:'伏見稻荷 → 清水寺',desc:'出站直接叫計程車上去，不要走那段上坡。',note:'這是全程唯一一段「純移動、又長又累」的走路。清水五條站到清水寺走路 25 分鐘全是上坡，計程車約 8 分鐘、一台約 ¥800–1,300（京都起跳 900m ¥500、之後每 255m ¥100，連假塞車另計），四人分攤每人約 ¥200–325。今天總共要走 7–8 公里還有伏見稻荷的階梯，這筆是整趟 CP 值最高的花費。京阪巴士 84 系統也可以（¥230、約 16 分），但連假日班次會擠。',transport:{head:'🚆＋🚕 伏見稻荷 KH34 → 清水五條 KH38 → 清水寺',fare:'約 ¥240＋計程車每人約 ¥135',steps:['搭京阪本線往出町柳方向，普通／準急都可以。','清水五條下車，出站找計程車，四人一台到清水寺約 8 分鐘、¥800–1,300。','旺季五条坂會塞，司機可能在中途放人——即使這樣也省掉大半的坡。','堅持要走的話約 25 分鐘，全程上坡，沿路是陶器店與和風雜貨，不算無聊但很耗腿。']},actions:[['↗ 直接導航','https://www.google.com/maps/dir/?api=1&origin=Fushimi+Inari+Taisha&destination=Kiyomizu-dera&travelmode=transit','route']]},
+{time:'09:20–10:15',type:'transport',gapMinutes:5,title:'伏見稻荷 → 清水寺',desc:'出站直接叫計程車上去，不要走那段上坡。',note:'這是全程唯一一段「純移動、又長又累」的走路。清水五條站到清水寺走路 25 分鐘全是上坡，計程車約 8 分鐘、一台約 ¥800–1,300（京都起跳 900m ¥500、之後每 255m ¥100，連假塞車另計），四人分攤每人約 ¥200–325。今天總共要走 7–8 公里還有伏見稻荷的階梯，這筆是整趟 CP 值最高的花費。京阪巴士 84 系統也可以（¥230、約 16 分），但連假日班次會擠。',transport:{head:'🚆＋🚕 伏見稻荷 KH34 → 清水五條 KH38 → 清水寺',fare:'約 ¥240＋計程車每人約 ¥200–325',steps:['搭京阪本線往出町柳方向，普通／準急都可以。','清水五條下車，出站找計程車，四人一台到清水寺約 8 分鐘、¥800–1,300。','旺季五条坂會塞，司機可能在中途放人——即使這樣也省掉大半的坡。','堅持要走的話約 25 分鐘，全程上坡，沿路是陶器店與和風雜貨，不算無聊但很耗腿。']},actions:[['↗ 直接導航','https://www.google.com/maps/dir/?api=1&origin=Fushimi+Inari+Taisha&destination=Kiyomizu-dera&travelmode=transit','route']]},
 {time:'10:20–12:30',type:'attraction',gapNote:'到站、走到山門',title:'清水寺 → 三年坂 → 二年坂',desc:'主景點上午完成，避開午後最大人潮。',note:'八坂塔（法観寺）那個經典街景在二年坂往下走的巷口，順路不用繞。',actions:[['📍 清水寺','https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera+Kyoto','map']]},
 {time:'12:30–14:50',type:'food',title:'午餐 A / B / C＋祇園',desc:'12:20 看排隊長度，選第一個能在 20 分鐘內入座的方案；不為名店打亂下午。',status:'choice',statusLabel:'現場三選一',note:'花見小路的巷弄是私人道路，禁止攝影，違規會被開罰。要拍就在四条通那側的公共道路拍。',choices:[{label:'A · 最近',title:'祇園 京めん',desc:'京風烏龍／蕎麥；祇園會館 1F，動線最短。',url:'https://www.google.com/maps/search/?api=1&query=Gion+Kyomen+Kyoto'},{label:'B · 傳統',title:'祇園權兵衛',desc:'蕎麥、烏龍與丼飯；適合想坐下吃完整午餐。',url:'https://www.google.com/maps/search/?api=1&query=Gion+Gonbe+Kyoto'},{label:'C · 雨天',title:'四条河原町餐廳層',desc:'直接往百貨公司室內用餐，再接錦市場與商店街。',url:'https://www.google.com/maps/search/?api=1&query=Kyoto+Kawaramachi+department+store+restaurants'}],actions:[['八坂神社地圖','https://www.google.com/maps/search/?api=1&query=Yasaka+Shrine+Kyoto','map'],['花見小路地圖','https://www.google.com/maps/search/?api=1&query=Hanamikoji+Street+Kyoto','map']]},
 {time:'15:15–16:15',type:'shopping',gapNote:'走到錦市場',gapMinutes:15,title:'錦市場｜只逛一小時',desc:'伴手禮與零食抓重點，不逛完整條。河原町百貨留到有力氣再說。',note:'今天 9/23 同時是週三和秋分日：錦市場有些店週三公休、有些店祝日公休，可能比平常少開一些，觀光取向的店通常照開。禁止邊走邊吃，買了要在店門口吃完再走，垃圾交回原店。刻意壓成一小時，是為了 16:30 就能上車。',actions:[['📍 錦市場','https://www.google.com/maps/search/?api=1&query=Nishiki+Market+Kyoto','map']]},
-{time:'16:30–18:00',type:'transport',gapMinutes:10,title:'京都 → 心齋橋',desc:'比原訂早一小時離開京都，把時間換成今晚的睡眠。',note:'這是硬規則，不是建議：16:30 一定要上車，錦市場再好逛也一樣。明天 05:20 起床、玩到 21:30，今天多留的每一小時都會從明天的體力扣回去。真的想多留，砍的是錦市場不是這班車。',transport:{head:'🚆＋🚇 祇園四条 → 心齋橋',fare:'約 ¥680',steps:['祇園四条 KH39 搭京阪特急淀屋橋行。','淀屋橋轉御堂筋線往なかもず方向。','心齋橋 M19 下車。','今天總交通約 ¥1,600 / 人。']},actions:[['↗ 回飯店導航','https://www.google.com/maps/dir/?api=1&origin=Gion-Shijo+Station&destination=Just+Sleep+Osaka+Shinsaibashi&travelmode=transit','route']]},
+{time:'16:30–18:00',type:'transport',gapMinutes:10,title:'京都 → 心齋橋',desc:'比原訂早一小時離開京都，把時間換成今晚的睡眠。',note:'這是硬規則，不是建議：16:30 一定要上車，錦市場再好逛也一樣。明天 05:20 起床、玩到 21:30，今天多留的每一小時都會從明天的體力扣回去。真的想多留，砍的是錦市場不是這班車。',transport:{head:'🚆＋🚇 祇園四条 → 心齋橋',fare:'約 ¥680',steps:['祇園四条 KH39 搭京阪特急淀屋橋行。','淀屋橋轉御堂筋線往なかもず方向。','心齋橋 M19 下車。','今天總交通約 ¥1,800–1,925 / 人（含清水寺那段計程車分攤）。']},actions:[['↗ 回飯店導航','https://www.google.com/maps/dir/?api=1&origin=Gion-Shijo+Station&destination=Just+Sleep+Osaka+Shinsaibashi&travelmode=transit','route']]},
 {time:'18:15–19:30',type:'food',gapNote:'回飯店放東西',gapMinutes:9,title:'晚餐｜就近解決',desc:'回飯店放東西後，在心齋橋、道頓堀一帶吃。居酒屋或定食都可以。',status:'decision',statusLabel:'不要走遠',note:'規則只有一條：離飯店步行 5 分鐘內、看到不用排隊的就進去。走了一整天還為了找店多走 15 分鐘，是這種行程最常見的崩潰點。'},
 {time:'20:00–21:00',type:'rest',gapNote:'走回飯店',gapMinutes:10,title:'整理行李＋早睡',desc:'明天全部行李帶走換飯店，今晚就要打包完。',note:'目標 21:00 上床。明天 05:20 就要起床衝 USJ，這是整趟唯一能預先補的覺，今晚每晚睡 30 分鐘，明天下午就會反映出來。'}]},
 
@@ -367,8 +367,8 @@ items:[
 {time:'05:45–06:35',type:'transport',title:'心齋橋 → Universal City',desc:'先到環球塔寄行李。',transport:{head:'🚇＋🚆 心齋橋 → Universal City',fare:'約 ¥440',steps:['心齋橋 M19 搭御堂筋線往箕面萱野／新大阪方向 → 梅田 M16。','跟「JR 大阪駅」指標走，不要走去阪急／阪神。','JR 大阪搭大阪環狀線往西九条方面。','若列車直通桜島／Universal City 就直接坐；否則西九条轉 JR ゆめ咲線桜島行。','ユニバーサルシティ下車。']},actions:[['↗ 換飯店導航','https://www.google.com/maps/dir/?api=1&origin=Just+Sleep+Osaka+Shinsaibashi&destination=Hotel+Keihan+Universal+Tower&travelmode=transit','route']]},
 {time:'06:35',type:'hotel',title:'寄行李＋買早餐',desc:'Hotel Keihan Universal Tower 離 JR Universal City 與 USJ 都非常近。放下行李順便解決早餐。',note:'問四件事：入住從幾點開始、櫃台是否 24 小時、明天退房時間、含不含早餐。今天會玩到閉園才回來正式 check-in。早餐一定要在這裡買——進園後到 11:30 午餐之間你們會一直站著，空腹排隊兩小時是今天最容易崩的地方。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Hotel+Keihan+Universal+Tower','map']]},
 {time:'06:45',type:'attraction',gapNote:'走到閘門',gapMinutes:5,title:'開始排 USJ｜邊排邊吃',desc:'9/24 表定 09:00–21:30。提早開園是經驗值不是承諾，所以早到排隊、早餐在隊伍裡解決。',status:'decision',statusLabel:'今天不能出園',note:'把 07:15–07:45 開園當成一定會發生，是最容易失望的地方——那是網友統計的常態，不是官方公告。表定就是 09:00，早到只是為了卡在隊伍前段。進閘門後不要憑印象衝，先看 USJ App：顯示「自由入場」就直接衝咚奇剛；已經開始發整理券就先抽四人份，抽完再談要去哪。一般 Studio Pass 不能再入場（年間パス 除外），走出閘門就回不來，晚上的 Halloween Horror Nights 也一起沒了——要拿的東西現在就帶進去。出發前一週再確認一次官方營業時間。',actions:[['📍 USJ','https://www.google.com/maps/search/?api=1&query=Universal+Studios+Japan','map'],['↗ 步行導航','https://www.google.com/maps/dir/?api=1&origin=Hotel+Keihan+Universal+Tower&destination=Universal+Studios+Japan&travelmode=walking','route']]},
-{time:'一開園',progressTime:'07:30',type:'attraction',title:'直接衝咚奇剛，不要先抽券',desc:'開園瞬間人還少時，SUPER NINTENDO WORLD 常常不用整理券就能直接進去。先用走的快步進場，直奔咚奇剛的瘋狂礦車。',status:'decision',statusLabel:'今天最關鍵',note:'咚奇剛在開園時有機會 30 分鐘內排到，08:00 之後通常要 2 小時以上——這一站的成敗就決定在最前面那 20 分鐘。進得去就先玩，玩完再抽券。'},
-{time:'進場後',progressTime:'07:50',type:'attraction',title:'一人代表抽全員的整理券',desc:'掃票入園後才抽得到。由一個人在 USJ App 登錄四張 Studio Pass，在「e整理券」一次抽四人份，才會拿到同一個時段。',status:'decision',statusLabel:'不要各抽各的',note:'四個人各自抽會拿到不同時段，等於把隊伍拆散——這是最常見的錯誤。2026 年起園內發券機已廢止，只能用 App。整理券抽完會自動轉成「抽選券」（抽籤，沒中就進不去）；沒中的話等傍晚人潮散掉再試，中午最擠不要硬闖。'},
+{time:'一開園',progressTime:'07:30',type:'attraction',title:'看 App 分流：衝咚奇剛，或先抽券',desc:'入園後先開 USJ App 看 SUPER NINTENDO WORLD 的狀態。顯示自由入場就快步直奔咚奇剛的瘋狂礦車；已經開始發整理券就跳到下一站先抽四人份，抽完再回來排。',status:'decision',statusLabel:'今天最關鍵',note:'自由入場時咚奇剛有機會 30 分鐘內排到，08:00 之後通常要 2 小時以上。但整理券一旦開始發，旺季常在 30–45 分鐘內抽完——這種情況還先衝設施，等於拿全團的入園資格去賭那一趟。順序由 App 決定，不是由印象決定。'},
+{time:'進場後',progressTime:'07:50',type:'attraction',title:'一人代表抽全員的整理券',desc:'掃票入園後才抽得到。由一個人在 USJ App 登錄四張 Studio Pass，在「e整理券」一次抽四人份，才會拿到同一個時段。',status:'decision',statusLabel:'不要各抽各的',note:'上一站的 App 若顯示已在發整理券，這一站就要提到最前面先做。四個人各自抽會拿到不同時段，等於把隊伍拆散——這是最常見的錯誤。2026 年起園內發券機已廢止，只能用 App。整理券抽完會自動轉成「抽選券」（抽籤，沒中就進不去）；沒中的話等傍晚人潮散掉再試，中午最擠不要硬闖。'},
 {time:'白天',progressTime:'08:30',type:'attraction',title:'其餘大型設施',desc:'瑪利歐賽車、飛天翼龍、好萊塢美夢、哈利波特。',note:'沒有快速通關，熱門設施都要排。看到 60 分鐘以上就先跳過，改玩隔壁的，晚點回頭。飛天翼龍這類要求隨身物品全部寄物，先講好誰保管什麼，不要每次重新分配。'},
 {time:'11:30–12:30',type:'food',title:'午餐｜避開高峰',desc:'園內熱門餐廳中午排 60–90 分鐘很正常。',note:'兩個做法：11:30 前先吃，或改買外帶攤位邊排隊邊解決。四個人不必綁在一起吃。'},
 {time:'15:00–16:00',type:'rest',title:'園內 Recovery｜不出園',desc:'不排熱門設施。找室內座位或咖啡廳坐滿 45–60 分鐘，換襪子、補水、充行動電源、整理戰利品。',status:'decision',statusLabel:'體力關鍵',note:'飯店雖然只有 5 分鐘路程，但今天絕對不能走出園區去休息，出去就回不來了。休息一定要在園內完成。'},

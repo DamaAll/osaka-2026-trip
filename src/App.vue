@@ -641,6 +641,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('offline', updateNetwork)
   window.removeEventListener('popstate', syncFromUrl)
   clearInterval(clockTimer)
+  clearTimeout(emergencySavedTimer)
 })
 </script>
 
