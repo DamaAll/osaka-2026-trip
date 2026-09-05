@@ -1023,6 +1023,43 @@ test('the route-level fixes from review hold', async ({ page }) => {
   }).locator('.journey-status')).toHaveText('累了就砍')
 })
 
+/*
+ * 跨區塊一致性。行程把 Donki 主採購移到 D1 之後，「買什麼」分頁的藥妝分類
+ * 還指著 D2；PARCO 的砍點寫 18:45，但晚餐已經提前到 18:00。這種矛盾每一份
+ * 單獨看都對，只有把兩邊擺在一起才看得出來，所以直接讀資料比對。
+ */
+test('cross-section facts agree with the itinerary', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'buy')
+
+  // 藥妝與美妝的「哪天買」要跟行程的主採購日一致（D1），不能還停在 D2。
+  for (const title of ['藥妝與常備藥', '開架美妝']) {
+    const fold = page.locator('.fold', { hasText: title })
+    await expect(fold.locator('summary small')).toContainText('D1 晚上')
+  }
+  // 京都限定不能只指向兩個都可能被砍的點；二三年坂是一定會走到的。
+  await expect(page.locator('.fold', { hasText: '京都限定' }).locator('summary small')).toContainText('二年坂')
+
+  await page.getByRole('tab', { name: /行程/ }).click()
+
+  // D1：PARCO 的砍點必須早於晚餐時間，否則規則在時間上自相矛盾。
+  const parco = page.locator('#d1 .journey-content').filter({
+    has: page.getByRole('heading', { name: /PARCO/ })
+  })
+  await expect(parco).toContainText('17:30 之後才進飯店就整段砍')
+  await expect(page.getByText(/18:45 之後才進飯店/)).toHaveCount(0)
+
+  // D2：從飯店走到元町的燒肉店不是 15 分鐘；休息 18:30 結束、預設搭 Metro。
+  const yakiniku = page.locator('#d2 .journey-content').filter({
+    has: page.getByRole('heading', { name: /焼肉 ソウル/ })
+  })
+  await expect(yakiniku.locator('.transport-top')).toContainText('Metro 一站')
+  await expect(yakiniku.locator('.route-steps li').filter({ hasText: /步行約 15 分鐘/ })).toHaveCount(0)
+  await expect(page.locator('#d2 .journey-content').filter({
+    has: page.getByRole('heading', { name: /今天唯一的休息/ })
+  }).locator('.journey-time')).toHaveText('17:50–18:30')
+})
+
 test('D4 never sends anyone out of the park to rest', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-24T09:00:00+09:00') })
   await page.setViewportSize({ width: 390, height: 844 })

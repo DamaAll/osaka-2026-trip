@@ -23,7 +23,7 @@ decisions:[
 {days:'*',when:'每天 · 出門前',badge:'HEAT',title:'體感 30°C 以上就降速',rule:'9 月下旬關西仍然很熱。隨身帶水、每 2 小時進一次冷氣、上坡段改計程車，不硬撐。',tone:'amber'},
 {days:['d4'],when:'D4 · 一整天',badge:'NO RE-ENTRY',title:'進了 USJ 就不能出園',rule:'一般 Studio Pass 不能再入場（年間パス 除外）。休息一律在園內解決，走出閘門就回不去，晚上的 Halloween Horror Nights 也一起沒了。',tone:'amber',action:'官方票券注意事項',url:'https://www.usj.co.jp/web/ja/jp/tickets/terms/studiopass/notice'},
 {days:'*',when:'落後 30 分鐘時',badge:'CUT',title:'砍掉下一個可跳過的點',rule:'不要用走快一點把進度追回來，那只會把疲勞累積到晚上。直接砍掉下一個標「可跳過」的站，把時間還給當下正在逛的地方。這趟每天都排得很滿，砍一站不會少看什麼。',tone:'blue'},
-{days:['d2'],when:'D2 · 早上',badge:'OPTIONAL',title:'早上兩站都可以跳過',rule:'睡眠不足或下雨就直接睡到 09:30，10:30 進 Den Den Town。八阪神社與黑門市場都免費，跳過不損失金錢。',tone:'blue'},
+{days:['d2'],when:'D2 · 早上',badge:'OPTIONAL',title:'早上兩站都可以跳過',rule:'睡眠不足或下雨就直接睡到 09:30，10:30 進 Den Den Town。八阪神社與黑門市場都免費，跳過不損失金錢——但黑門是早餐，跳過就在便利商店解決，不然要撐到 13:30 才有拉麵。',tone:'blue'},
 {days:['d3'],when:'D3 · 出發前',badge:'RAIN B',title:'京都大雨改走室內線',rule:'縮短伏見稻荷，改三十三間堂、錦市場、寺町與新京極商店街。',tone:'green',action:'京都官方雨天建議',url:'https://global.kyoto.travel/en/faq/detail.php?faq_id=1019'},
 {days:'*',when:'任何一天',badge:'TYPHOON',title:'颱風警報就切應急流程',rule:'先確認航班狀態，再決定當天行程。不要在颱風日排長距離移動，細節看「應急」分頁。',tone:'amber',action:'查 KIX 航班狀態',url:'https://www.kansai-airport.or.jp/flight'}],
 
@@ -249,7 +249,7 @@ note:'日本的免税制度 2026/11/1 起改成出境後退税，但你們 9 月
 souvenirs:{
 caption:'網路上被推薦最多次的品項，按你們哪一天會走到來分。不是待辦清單，是想不到要買什麼的時候翻的。',
 groups:[
-{key:'drug',title:'藥妝與常備藥',where:'D2 晚上 Donki／藥妝店',tone:'blue',items:[
+{key:'drug',title:'藥妝與常備藥',where:'D1 晚上 Donki 主採購（D2 只補漏）',tone:'blue',items:[
 ['EVE 止痛藥','頭痛與生理痛，台灣人帶最多的一款。'],
 ['龍角散','喉嚨不適，粉狀與喉糖都有。'],
 ['太田胃散','吃太多、胃脹的老牌成藥。'],
@@ -259,7 +259,7 @@ groups:[
 ['花王 蒸氣眼罩','熱敷眼罩，長途飛機與睡前用。'],
 ['無比滴','蚊蟲叮咬止癢。'],
 ['合利他命','維他命 B 群類保健品。']]},
-{key:'beauty',title:'開架美妝',where:'D2 晚上 Donki／藥妝店',tone:'blue',items:[
+{key:'beauty',title:'開架美妝',where:'D1 晚上 Donki 主採購（D2 只補漏）',tone:'blue',items:[
 ['肌研 Hada Labo','化妝水，藥妝店常年熱銷。'],
 ['Curel 珂潤','敏感肌保養線。'],
 ['LuLuLun 面膜','大包裝天天敷，重但便宜。'],
@@ -272,7 +272,7 @@ groups:[
 ['たこパティエ','章魚燒風味的千層酥，包裝很大阪。'],
 ['大阪限定 Pocky / KitKat','便利商店與土產店都有，分裝送同事最方便。'],
 ['Pablo 起司塔','半熟起司塔，有常溫版本比較好帶。']]},
-{key:'kyoto',title:'京都限定',where:'D3 錦市場・河原町',tone:'green',items:[
+{key:'kyoto',title:'京都限定',where:'D3 二年坂・三年坂（一定會走到）；錦市場是備選',tone:'green',items:[
 ['阿闍梨餅（滿月）','單顆約 ¥141，京都伴手禮的常勝軍。'],
 ['生八ツ橋（井筒八ッ橋・夕子）','肉桂與抹茶口味；「夕子」是包餡版本。'],
 ['茶之菓（MALEBRANCHE 京都北山）','宇治抹茶貓舌餅乾夾白巧克力。'],
@@ -327,7 +327,7 @@ days:[
 {time:'13:20',type:'flight',title:'KIX T2 抵達',desc:'Peach 在第 2 航廈。Visit Japan Web 先做好，領完行李直接進城。',note:'出關後不用找巴士站，直接搭正對面的免費連絡巴士去 T1。Android 的人在南海車站就能買 ICOCA，D2 早上不用再跑心齋橋站。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Kansai+International+Airport+Terminal+2','map']]},
 {time:'14:30 起',type:'transport',title:'接駁車 → 南海空港急行 → なんば計程車',desc:'出關就走，不用等特定班次。南海每小時約 6 班，入境多慢都不會被卡。',note:'原本的利木津巴士 ¥1,800、班距 40–60 分，錯過就等一小時。改南海每人省約 ¥600、早半小時到一小時進飯店。順的話 14:30 出關、16:00 前進飯店。',transport:{head:'🚌＋🚆＋🚕 KIX T2 → 南船場',fare:'約 ¥1,200 / 人（¥970＋計程車四人分攤）',steps:['T2 國際線到達口正對面搭免費連絡巴士到 T1／エアロプラザ，每 7 分一班、車程 7–9 分。','エアロプラザ 1F 下車，電梯或電扶梯上 2F 往車站走，約 5 分鐘。','驗票口有兩個並排：南海在左、紅橘色標示；JR 在右、藍色。刷錯要找站務員取消，別跟著人群走。','刷 ICOCA／Suica 或買 ¥970 車票。Android 的人在粉紅色售票機順便買 ICOCA（05:00–23:00）。','搭「空港急行」なんば行，約 45 分。ラピート只快 7 分但特急券 ¥550 起，不值得。','なんば 2F 中央改札口出來，跟著「なんばパークス」與計程車標示，右前方電扶梯下 1F，再走約 50 公尺，全程約 4 分鐘。','四人一台到南船場 2-9-15 約 5 分、¥800–1,000。四個大箱子一台普通轎車未必裝得下：乘車處有大台的 JPN TAXI 就選它，不然分兩台、或兩個人改搭 Metro 一站到心齋橋。排隊超過 10 分鐘也改搭 Metro。']},actions:[['南海時刻表','https://www.nankai.co.jp/traffic/kix/kix_dia.html'],['導航到飯店','https://www.google.com/maps/dir/?api=1&origin=Kansai+International+Airport+Terminal+2&destination=Just+Sleep+Osaka+Shinsaibashi&travelmode=transit','route']]},
 {time:'16:00',type:'hotel',title:'捷絲旅 Check-in',desc:'前三晚固定住 Just Sleep Osaka Shinsaibashi。',note:'順便問清楚：早餐時間與地點、行李寄放規則、最近的便利商店。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Just+Sleep+Osaka+Shinsaibashi','map']]},
-{time:'17:00–18:00',type:'shopping',gapNote:'進房、梳洗',title:'心齋橋 PARCO｜只逛一個重點',desc:'抵達日只逛一個重點，服飾在 D2 美國村還有一輪。16:00 入住是目標不是硬起點，晚到就縮這一站，不要把晚餐往後推。',status:'optional',statusLabel:'D1 第一個砍',note:'今天是敬老日，也是 9/19 起五連休的第三天，商店街會比平常擠，別急著逛完。班機延誤時，這一站就是第一個縮短或砍掉的：18:45 之後才進飯店就整段砍，直接去吃飯——服飾在 D2 的美國村還有一輪。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Shinsaibashi+PARCO','map']]},
+{time:'17:00–18:00',type:'shopping',gapNote:'進房、梳洗',title:'心齋橋 PARCO｜只逛一個重點',desc:'抵達日只逛一個重點，服飾在 D2 美國村還有一輪。16:00 入住是目標不是硬起點，晚到就縮這一站，不要把晚餐往後推。',status:'optional',statusLabel:'D1 第一個砍',note:'今天是敬老日，也是 9/19 起五連休的第三天，商店街會比平常擠，別急著逛完。班機延誤時，這一站就是第一個縮短或砍掉的：17:30 之後才進飯店就整段砍，直接去吃 18:00 的晚餐——晚餐時間不動，動的是這一站。服飾在 D2 的美國村（選配）還有一輪。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Shinsaibashi+PARCO','map']]},
 {time:'18:00–19:15',type:'food',title:'晚餐｜道頓堀就近吃',desc:'第一晚吃簡單、不排隊。搭機、入境、轉車之後，餓著逛街是抵達日最常見的崩點，所以晚餐提前到 18:00。',status:'decision',statusLabel:'不要往後推',note:'規則只有一條：離飯店或道頓堀步行 5 分鐘內、看到不用排隊的就進去。今晚全程步行可到，沒有交通卡也不影響。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Dotonbori+Osaka','map']]},
 {time:'19:30–21:00',type:'shopping',gapNote:'走到 Donki',gapMinutes:10,title:'Donki 道頓堀｜今晚是主採購',desc:'藥妝與重物今晚一次買齊，D2 只補漏。Donki 24 小時營業，不趕；買完直接回飯店整理。',status:'optional',statusLabel:'累了就砍',note:'今晚就用 Donki 優惠券：截圖無效、要現場開著頁面讓店員掃，每張限用一次。四人湊成一單，稅抜過 ¥30,000 是 7%。消耗品會被封袋，在日本拆開要補稅，當下要用的另外買一份含稅的。真的累了就整段砍，明晚燒肉後還有一次補漏機會。',actions:[['📍 Donki 道頓堀','https://www.google.com/maps/search/?api=1&query=Don+Quijote+Dotonbori+Osaka','map']]}]},
 
@@ -340,8 +340,8 @@ days:[
 {time:'14:25–16:00',type:'shopping',gapNote:'走到難波',gapMinutes:10,title:'Bic Camera 難波＋相機店',desc:'3C、相機、配件集中處理；想看二手鏡頭順便看 Naniwa Camera。時間依購買需求分配，不必每間平均逛——四個人找商品、比價、免稅結帳，一定比想像久。',note:'免稅要帶護照本人，而且免稅 QR 不能用截圖，要現場開 Visit Japan Web。一般物品與消耗品原則上各自算 ¥5,000，但兩邊都不到時可以合併計算——條件是一般物品要比照消耗品做特殊包裝、之後不能拆。實際能不能合併看店家系統支不支援，不要當成一定可以。',actions:[['📍 Bic Camera','https://www.google.com/maps/search/?api=1&query=Bic+Camera+Namba','map'],['📍 Naniwa Camera','https://www.google.com/maps/search/?api=1&query=Naniwa+Camera+Namba+Marui','map']]},
 {time:'16:20–17:20',type:'shopping',gapNote:'走到美國村',gapMinutes:13,title:'Orange Street＋美國村',desc:'潮牌、古著、鞋店。4 人可分開逛。',status:'optional',statusLabel:'選配',note:'今天已經走了神社、黑門、日本橋四間店、Bic。這站是選配：累了就直接回飯店。如果潮牌古著才是你們的重點，那就反過來縮日本橋或 Bic 的時間，不要三個都全保留。散開前先講好幾點、在哪裡集合，並用 Google Maps 傳定位。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Orange+Street+Osaka','map']]},
 {time:'17:20–17:50',type:'hotel',title:'回飯店放購物袋',desc:'今天買最多的一段已經結束，先卸貨再去吃飯。',note:'不放的話，你們要提著 3C 與藥妝進燒肉店。',status:'decision',statusLabel:'動線關鍵'},
-{time:'17:50–18:35',type:'rest',title:'空白｜今天唯一的休息',desc:'不排任何行程。洗個澡、躺一下，或在心齋橋附近隨便走走都可以。',status:'free',statusLabel:'不排行程',note:'今天從 08:00 走到現在。明天 06:20 就要出門去京都，這段休息是為了明天，不是浪費。'},
-{time:'19:00–20:45',type:'food',gapMinutes:15,title:'焼肉 ソウル｜這趟的主餐',desc:'食べログ 3.72、569 則評價，焼肉 WEST 百名店 2024＋2025 連兩年入選。招牌是ハラミ三種盛與上塩タン。客單價約 ¥4,000。',note:'只接受電話預約：06-6643-3644，訂 19:00。54 席、無個室、定休週四（逢假日照常營業），9/22 確定有開。',transport:{head:'🚶 心齋橋 → 焼肉 ソウル',fare:'步行約 15 分鐘',steps:['沿心齋橋筋往南走到難波，再往元町方向。','懶得走就搭御堂筋線一站到なんば，32 號出口步行 5 分鐘。','地址：大阪市浪速区元町 2-7-24。']},actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Yakiniku+Soul+Motomachi+Naniwa+Osaka','map']]},
+{time:'17:50–18:30',type:'rest',title:'空白｜今天唯一的休息',desc:'不排任何行程。洗個澡、躺一下，或在心齋橋附近隨便走走都可以。',status:'free',statusLabel:'不排行程',note:'今天從 08:00 走到現在。明天 06:20 就要出門去京都，這段休息是為了明天，不是浪費。'},
+{time:'19:00–20:45',type:'food',gapMinutes:20,title:'焼肉 ソウル｜這趟的主餐',desc:'食べログ 3.72、569 則評價，焼肉 WEST 百名店 2024＋2025 連兩年入選。招牌是ハラミ三種盛與上塩タン。客單價約 ¥4,000。',note:'只接受電話預約：06-6643-3644，訂 19:00。54 席、無個室、定休週四（逢假日照常營業），9/22 確定有開。',transport:{head:'🚇 飯店 → 焼肉 ソウル',fare:'Metro 一站 ¥190，或步行約 20–25 分鐘',steps:['走了一整天，這段建議直接搭車：心齋橋 M19 御堂筋線一站到なんば，32 號出口步行 5 分鐘，全程約 15 分。','堅持走的話：從飯店（南船場）沿心齋橋筋往南到難波、再往元町，約 2 公里、20–25 分鐘——以前寫 15 分鐘是從心齋橋站算的，不是從飯店。','地址：大阪市浪速区元町 2-7-24。18:30 出門，兩種走法都趕得上 19:00。']},actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Yakiniku+Soul+Motomachi+Naniwa+Osaka','map']]},
 {time:'21:05–21:45',type:'shopping',gapNote:'走到道頓堀',gapMinutes:12,title:'藥妝 / Donki 補漏',desc:'主採購 D1 晚上已經做完。只有明確漏買的才去，不再展開一輪大採購。',status:'optional',statusLabel:'有清單才去',note:'燒肉店在元町，走到道頓堀 Donki 約 12 分鐘——這段路以前漏算了。四個人免稅結帳排隊就可能吃掉 20 分鐘，所以只補漏、22:00 前回飯店。沒有清單就直接回去睡，明天 06:20 出門。',actions:[['📍 Donki 道頓堀','https://www.google.com/maps/search/?api=1&query=Don+Quijote+Dotonbori+Osaka','map']]}]},
 
 {id:'d3',no:'DAY 3',date:'9/23（三）',title:'京都經典一日',image:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Fushimi_Inari-taisha_senbon-torii%2C_August_2019.jpg/1280px-Fushimi_Inari-taisha_senbon-torii%2C_August_2019.jpg',alt:'伏見稻荷千本鳥居',
@@ -357,7 +357,7 @@ items:[
 {time:'15:15–16:00',type:'shopping',gapNote:'走到錦市場',gapMinutes:15,title:'錦市場｜只逛 45 分鐘',desc:'伴手禮與零食抓重點，不逛完整條。河原町百貨留到有力氣再說。',status:'optional',statusLabel:'第一順位刪除',note:'這站是今天第一個砍的，而且要早決定：午餐後如果已經累了，就留在祇園喝茶、慢慢拍照，直接不來，不要等到延誤才取消——你們 D2 已經逛過黑門市場了。今天 9/23 同時是週三和秋分日，錦市場有些店週三公休、有些店祝日公休，觀光取向的店通常照開。禁止邊走邊吃，買了要在店門口吃完再走。16:00 一定離開，走到祇園四条約 12 分鐘。',actions:[['📍 錦市場','https://www.google.com/maps/search/?api=1&query=Nishiki+Market+Kyoto','map']]},
 {time:'16:30–18:00',type:'transport',gapMinutes:12,title:'京都 → 心齋橋',desc:'比原訂早一小時離開京都，把時間換成今晚的睡眠。',note:'這是硬規則，不是建議：16:30 一定要上車，錦市場再好逛也一樣。明天 05:20 起床、玩到 21:30，今天多留的每一小時都會從明天的體力扣回去。真的想多留，砍的是錦市場不是這班車。',transport:{head:'🚆＋🚇 祇園四条 → 心齋橋',fare:'約 ¥680',steps:['祇園四条 KH39 搭京阪特急淀屋橋行。','淀屋橋轉御堂筋線往なかもず方向。','心齋橋 M19 下車。','今天總交通約 ¥1,800–1,925 / 人（含清水寺那段計程車分攤）。']},actions:[['↗ 回飯店導航','https://www.google.com/maps/dir/?api=1&origin=Gion-Shijo+Station&destination=Just+Sleep+Osaka+Shinsaibashi&travelmode=transit','route']]},
 {time:'18:15–19:30',type:'food',gapNote:'回飯店放東西',gapMinutes:9,title:'晚餐｜就近解決',desc:'回飯店放東西後，在心齋橋、道頓堀一帶吃。居酒屋或定食都可以。',status:'decision',statusLabel:'不要走遠',note:'規則只有一條：離飯店步行 5 分鐘內、看到不用排隊的就進去。走了一整天還為了找店多走 15 分鐘，是這種行程最常見的崩潰點。'},
-{time:'20:00–21:00',type:'rest',gapNote:'走回飯店',gapMinutes:10,title:'整理行李＋買明早早餐＋早睡',desc:'明天全部行李帶走換飯店，今晚就要打包完。順便在便利商店買好明早的早餐——明天 06:35 到環球塔時附近不會有店開，早餐要靠今晚。',note:'目標 21:00 上床。明天 05:20 就要起床衝 USJ，這是整趟唯一能預先補的覺，今晚每晚睡 30 分鐘，明天下午就會反映出來。'}]},
+{time:'20:00–21:00',type:'rest',gapNote:'走回飯店',gapMinutes:10,title:'整理行李＋買明早早餐＋問飯店＋早睡',desc:'明天全部行李帶走換飯店，今晚就要打包完。順便在便利商店買好明早的早餐——明天 06:35 到環球塔時附近不會有店開，早餐要靠今晚。也是今晚打給環球塔：清晨 4 樓置物櫃寄物怎麼拿代幣、入住幾點開始、櫃台是否 24 小時、明天退房時間、含不含早餐。明天早上沒時間問這些。',note:'目標 21:00 上床。明天 05:20 就要起床衝 USJ，這是整趟唯一能預先補的覺，今晚每晚睡 30 分鐘，明天下午就會反映出來。'}]},
 
 {id:'d4',no:'DAY 4',date:'9/24（四）',title:'USJ＋換住環球塔',image:'https://rimage.gnst.jp/livejapan.com/public/article/detail/a/20/00/a2000380/img/basic/a2000380_thumbnail.jpg',alt:'日本環球影城',
 weatherPlan:{title:'天氣切換',branches:[
@@ -366,7 +366,7 @@ weatherPlan:{title:'天氣切換',branches:[
 items:[
 {time:'05:20',type:'hotel',title:'起床＋退房',desc:'全部行李一起帶走，不再回心齋橋。',note:'比原訂提早 30 分鐘，因為沒買快速通關。今天早到 30 分鐘的價值，遠大於多睡 30 分鐘。'},
 {time:'05:45–06:35',type:'transport',title:'心齋橋 → Universal City',desc:'先到環球塔寄行李。',transport:{head:'🚇＋🚆 心齋橋 → Universal City',fare:'約 ¥440',steps:['心齋橋 M19 搭御堂筋線往箕面萱野／新大阪方向 → 梅田 M16。','跟「JR 大阪駅」指標走，不要走去阪急／阪神。','JR 大阪搭大阪環狀線往西九条方面。','若列車直通桜島／Universal City 就直接坐；否則西九条轉 JR ゆめ咲線桜島行。','ユニバーサルシティ下車。']},actions:[['↗ 換飯店導航','https://www.google.com/maps/dir/?api=1&origin=Just+Sleep+Osaka+Shinsaibashi&destination=Hotel+Keihan+Universal+Tower&travelmode=transit','route']]},
-{time:'06:35–07:00',type:'hotel',title:'4 樓置物櫃寄行李',desc:'入住前的行李不是放櫃台就走：飯店規定用 4 樓投幣置物櫃，代幣要先跟櫃台拿。四個人拿代幣、上樓、放好，抓 25 分鐘。',note:'D3 晚上先打電話或訊息問清楚清晨寄物流程，順便問入住從幾點開始、櫃台是否 24 小時、明天退房時間。早餐 D3 晚上就在便利商店買好，今早在大廳或隊伍裡吃——不要指望清晨這附近有店開。進園後到 11:30 午餐之間會一直站著，空腹排隊兩小時是今天最容易崩的地方。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Hotel+Keihan+Universal+Tower','map']]},
+{time:'06:35–07:00',type:'hotel',title:'4 樓置物櫃寄行李',desc:'入住前的行李不是放櫃台就走：飯店規定用 4 樓投幣置物櫃，代幣要先跟櫃台拿。四個人拿代幣、上樓、放好，抓 25 分鐘。',note:'寄物流程、入住時間、退房時間、含不含早餐，這些 D3 晚上就該問完了，今早只做不問。早餐 D3 晚上就在便利商店買好，今早在大廳或隊伍裡吃——不要指望清晨這附近有店開。進園後到 11:30 午餐之間會一直站著，空腹排隊兩小時是今天最容易崩的地方。',actions:[['📍 Google Maps','https://www.google.com/maps/search/?api=1&query=Hotel+Keihan+Universal+Tower','map']]},
 {time:'07:10',type:'attraction',gapNote:'走到閘門',gapMinutes:5,title:'開始排 USJ｜邊排邊吃',desc:'9/24 表定 09:00–21:30。提早開園是經驗值不是承諾，所以早到排隊、早餐在隊伍裡解決。',status:'decision',statusLabel:'今天不能出園',note:'把 07:15–07:45 開園當成一定會發生，是最容易失望的地方——那是網友統計的常態，不是官方公告。表定就是 09:00，早到只是為了卡在隊伍前段。進閘門後不要憑印象衝，先看 USJ App：顯示「自由入場」就直接衝咚奇剛；已經開始發整理券就先抽四人份，抽完再談要去哪。一般 Studio Pass 不能再入場（年間パス 除外），走出閘門就回不來，晚上的 Halloween Horror Nights 也一起沒了——要拿的東西現在就帶進去。出發前一週再確認一次官方營業時間。',actions:[['📍 USJ','https://www.google.com/maps/search/?api=1&query=Universal+Studios+Japan','map'],['↗ 步行導航','https://www.google.com/maps/dir/?api=1&origin=Hotel+Keihan+Universal+Tower&destination=Universal+Studios+Japan&travelmode=walking','route']]},
 {time:'一開園',progressTime:'07:30',type:'attraction',title:'看 App 分流：衝咚奇剛，或先抽券',desc:'入園後先開 USJ App 看 SUPER NINTENDO WORLD 的狀態。顯示自由入場就快步直奔咚奇剛的瘋狂礦車；已經開始發整理券就跳到下一站先抽四人份，抽完再回來排。',status:'decision',statusLabel:'今天最關鍵',note:'自由入場時咚奇剛有機會 30 分鐘內排到，08:00 之後通常要 2 小時以上。但整理券一旦開始發，旺季常在 30–45 分鐘內抽完——這種情況還先衝設施，等於拿全團的入園資格去賭那一趟。順序由 App 決定，不是由印象決定。'},
 {time:'進場後',progressTime:'07:50',type:'attraction',title:'一人代表抽全員的整理券',desc:'掃票入園後才抽得到。由一個人在 USJ App 登錄四張 Studio Pass，在「e整理券」一次抽四人份，才會拿到同一個時段。',status:'decision',statusLabel:'不要各抽各的',note:'上一站的 App 若顯示已在發整理券，這一站就要提到最前面先做。四個人各自抽會拿到不同時段，等於把隊伍拆散——這是最常見的錯誤。2026 年起園內發券機已廢止，只能用 App。整理券抽完會自動轉成「抽選券」（抽籤，沒中就進不去）；沒中的話等傍晚人潮散掉再試，中午最擠不要硬闖。'},
@@ -396,7 +396,7 @@ checklist:[
 ['USJ / 預約',[
 ['usj','USJ 電子票加入官方 App','4 人都能離線叫出。'],['express','在代表人 App 登錄四張 USJ 票','不買快速通關，整理券是唯一保障。一人登錄全員票券、一次抽四人份，才會同一時段。'],['meat','打電話訂 9/22 19:00 焼肉 ソウル','電話 06-6643-3644；訂不到就改訂 キナシ。'],['roomtype','確認兩間房的房型與床型','逐筆核對 DOUBLE / TWIN、入住姓名與 4 人配置。']]],
 ['規則 / 最後確認',[
-['d1cutoff','向全員說明 D1 接駁車與南海路線','T2 出關搭免費連絡巴士到 T1，南海空港急行到なんば，出站叫計程車。每 10 分一班，不用趕。'],['weather','9/20 晚上完成最終天氣檢查','颱風動向、京都降雨、當週氣溫三件一起看。'],['typhoon','向全員說明颱風應變','先查航班再決定行程，不要先衝機場。'],['finalcheck','出發前 48 小時核對變動資料','巴士時刻、USJ 開園時間、票價與營業時間，用官方連結逐一確認。'],['d5bus','向全員說明 D5 10:20 巴士集合時間','目標 10:50 發車；備援 11:10。']]],
+['d1cutoff','向全員說明 D1 接駁車與南海路線','T2 出關搭免費連絡巴士到 T1，南海空港急行到なんば，出站叫計程車。每 10 分一班，不用趕。'],['weather','9/20 晚上完成最終天氣檢查','颱風動向、京都降雨、當週氣溫三件一起看。'],['typhoon','向全員說明颱風應變','先查航班再決定行程，不要先衝機場。'],['finalcheck','出發前 48 小時核對變動資料','巴士時刻、USJ 開園時間、票價與營業時間，用官方連結逐一確認。'],['d5bus','向全員說明 D5 巴士：10:00 離開飯店、交通廣場 1 番のりば','関西空港行從 USJ 交通広場（バスターミナル）1 番のりば 發車，不是 Citywalk。目標 10:50，備援 11:10。']]],
 ['行李 / 電子用品',[
 ['baggage','查出 4 人回程托運額度','Peach 基本票不含托運，要查訂位紀錄。'],['scale','帶小型行李秤','回程藥妝、3C、伴手禮容易超重，帶了要真的用。'],['charger','帶手機充電器＋充電線','日本 100V、A 型兩扁腳；100–240V 充電器可直接使用。'],['powerbank','清點行動電源｜每人最多 2 個','Peach 自 2026/4/24 起：每人最多 2 個、每個 160Wh 以下，超過 160Wh 完全不能帶（托運也不行）。一律隨身不可托運，端子要貼膠帶或裝袋絕緣。機上不能用它充手機，也不能替它充電。'],['umbrella','帶折疊傘 / 輕便雨衣','京都與 USJ 都大量戶外步行，USJ 雨衣比傘好用。'],['shoes','帶好走的鞋＋替換襪','京都＋USJ 連兩天會很有感。'],['cooling','帶防曬與消暑用品','9 月下旬仍常 30°C 以上，防曬、涼感巾、電解質。'],['meds','帶個人常用藥','依個人需求攜帶，處方藥保留原包裝。']]]]
 };
