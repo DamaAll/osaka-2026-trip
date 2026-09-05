@@ -453,9 +453,9 @@ test('during the trip the itinerary opens on today', async ({ page }) => {
   await expect(page.locator('#d1 .journey-item')).toHaveCount(0)
   await expect(page.locator('#d1 .day-expand')).toBeVisible()
 
-  // 13:00 落在「午餐 A / B / C＋祇園」(12:30–14:50)，下一站是錦市場。
+  // 13:00 落在「午餐 A / B / C＋祇園」(12:30–14:50)，下一站是錦市場（已縮成 45 分鐘，16:00 一定離開）。
   await expect(page.locator('#d3 .stop-now .journey-time')).toHaveText('12:30–14:50')
-  await expect(page.locator('#d3 .stop-next .journey-time')).toHaveText('15:15–16:15')
+  await expect(page.locator('#d3 .stop-next .journey-time')).toHaveText('15:15–16:00')
   await expect(page.locator('#d3 .flag-now')).toHaveText('現在')
 
   /*
@@ -469,9 +469,9 @@ test('during the trip the itinerary opens on today', async ({ page }) => {
   await expect(page.locator('.day-nav-button.active')).toContainText('D3')
   await expect(page).toHaveURL(/day=d3/)
 
-  // 收起來的日子仍然打得開。
+  // 收起來的日子仍然打得開。D1 是 6 站：晚餐提前後 Donki 主採購獨立成一站。
   await page.locator('#d1 .day-expand').click()
-  await expect(page.locator('#d1 .journey-item')).toHaveCount(5)
+  await expect(page.locator('#d1 .journey-item')).toHaveCount(6)
 })
 
 // 站點顯示語意分類而非流水號，且現在／下一站會取代分類，一行最多兩個標籤。
@@ -978,6 +978,51 @@ test('the current stop uses Japan time even on a Taipei phone', async ({ browser
  * 一般 Studio Pass 不能再入場。行程若把休息排在園外，晚上的 Halloween Horror
  * Nights 就整段沒了，所以這條規則必須留在頁面上，D4 也不能出現離園休息。
  */
+/*
+ * 上一輪審查抓到的四件事，共同點是「照著頁面做會在現場出錯」：
+ * 站錯巴士站、寄物時間不夠、燒肉到 Donki 漏了路程、抵達日餓著逛到八點。
+ */
+test('the route-level fixes from review hold', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openTrip(page, 'itinerary')
+
+  // D5：関西空港行從交通廣場 1 號乘車處發車，不停 Citywalk。步驟裡不准再指向 Citywalk。
+  const d5bus = page.locator('#d5 .journey-content').filter({
+    has: page.getByRole('heading', { name: /交通廣場 1 號乘車處/ })
+  })
+  await expect(d5bus.locator('.transport-top')).toContainText('1 番のりば')
+  await expect(d5bus.locator('.route-steps li').filter({ hasText: /シティウォーク|Citywalk/ })).toHaveCount(0)
+  await expect(d5bus).toContainText('不是 Citywalk')
+
+  // D4：寄物走 4 樓置物櫃要拿代幣，不是 10 分鐘的事；排隊目標跟著後移到 07:10。
+  const d4store = page.locator('#d4 .journey-content').filter({
+    has: page.getByRole('heading', { name: /4 樓置物櫃/ })
+  })
+  await expect(d4store.locator('.journey-time')).toHaveText('06:35–07:00')
+  await expect(d4store).toContainText('代幣')
+  await expect(page.locator('#d4 .journey-content').filter({
+    has: page.getByRole('heading', { name: /開始排 USJ/ })
+  }).locator('.journey-time')).toHaveText('07:10')
+  await expect(page.getByText(/06:45 到園區/)).toHaveCount(0)
+
+  // D2：燒肉在元町、Donki 在道頓堀，中間 12 分鐘路程以前沒算；現在只補漏、有清單才去。
+  const d2donki = page.locator('#d2 .journey-content').filter({
+    has: page.getByRole('heading', { name: /Donki 補漏/ })
+  })
+  await expect(d2donki.locator('.journey-time')).toHaveText('21:05–21:45')
+  await expect(d2donki.locator('.journey-status')).toHaveText('有清單才去')
+
+  // D1：晚餐提前到 18:00，Donki 主採購接在後面且可砍。20:00 才吃晚餐那版不能回來。
+  const d1dinner = page.locator('#d1 .journey-content').filter({
+    has: page.getByRole('heading', { name: /晚餐｜道頓堀就近吃/ })
+  })
+  await expect(d1dinner.locator('.journey-time')).toHaveText('18:00–19:15')
+  await expect(page.getByText(/道頓堀＋拉麵＋第一輪藥妝/)).toHaveCount(0)
+  await expect(page.locator('#d1 .journey-content').filter({
+    has: page.getByRole('heading', { name: /今晚是主採購/ })
+  }).locator('.journey-status')).toHaveText('累了就砍')
+})
+
 test('D4 never sends anyone out of the park to rest', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-24T09:00:00+09:00') })
   await page.setViewportSize({ width: 390, height: 844 })
